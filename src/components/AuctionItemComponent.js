@@ -4,19 +4,18 @@ import {
   StyleSheet,
   TouchableOpacity,
   ImageBackground,
-} from 'react-native';
-import React, { useMemo } from 'react';
-import { Colors, Images, Metrix, NavigationService } from '../config';
-import { fonts } from '../config/Constants';
-import CountDown from 'react-native-countdown-fixed';
-import TextComponent from './TextComponent';
-import Button from './Button';
-import { imageBaseUrl } from '../config/ApiCaller';
-import { HomeMiddleware } from '../redux/Middlewares';
-import { useDispatch, useSelector } from 'react-redux';
+} from "react-native";
+import React, { useMemo } from "react";
+import { Colors, Images, Metrix, NavigationService } from "../config";
+import { fonts } from "../config/Constants";
+import TextComponent from "./TextComponent";
+import Button from "./Button";
+import { imageBaseUrl } from "../config/ApiCaller";
+import { HomeMiddleware } from "../redux/Middlewares";
+import { useDispatch, useSelector } from "react-redux";
 
 // Calculate seconds remaining from an ISO end_date string
-const getSecondsUntil = endDate => {
+const getSecondsUntil = (endDate) => {
   if (!endDate) return 0;
   const diff = Math.floor((new Date(endDate) - new Date()) / 1000);
   return diff > 0 ? diff : 0;
@@ -35,19 +34,19 @@ const AuctionItemComponent = ({ item = {} }) => {
 
   const secondsUntil = useMemo(() => getSecondsUntil(end_date), [end_date]);
   const dispatch = useDispatch();
-  const { user } = useSelector(state => state.AuthReducer);
+  const { user } = useSelector((state) => state.AuthReducer);
 
   const imageSource = thumbnail
     ? { uri: imageBaseUrl + thumbnail }
     : Images.dummy_car_dp;
 
-  const displayPrice = current_price ?? starting_price ?? '0.00';
-  const isActive = status === 'active';
+  const displayPrice = current_price ?? starting_price ?? "0.00";
+  const isActive = status === "active";
 
   const getAuctionDetails = () => {
     dispatch(HomeMiddleware.GetAuctionDetails(item.id, user?.token)).then(
-      res => {
-        NavigationService.navigate('AuctionDetails', {
+      (res) => {
+        NavigationService.navigate("AuctionDetails", {
           auctionId: item.id,
           details: res,
         });
@@ -73,20 +72,6 @@ const AuctionItemComponent = ({ item = {} }) => {
             <Text style={styles.badgeText}>{status.toUpperCase()}</Text>
           </View>
         )} */}
-
-        {/* Countdown Timer */}
-        <View style={styles.timerContainer}>
-          <CountDown
-            until={secondsUntil}
-            size={10}
-            digitStyle={{ backgroundColor: '#FFF' }}
-            digitTxtStyle={{ color: Colors.primary }}
-            timeLabelStyle={{ color: Colors.grayText, fontWeight: 'bold' }}
-            timeLabels={{ d: 'Day', h: 'Hour', m: 'Min', s: 'Sec' }}
-            showSeparator
-            separatorStyle={{ color: Colors.primary, marginTop: -16 }}
-          />
-        </View>
       </ImageBackground>
 
       <View style={styles.infoContainer}>
@@ -94,7 +79,7 @@ const AuctionItemComponent = ({ item = {} }) => {
         <TextComponent
           customStyles={{ color: Colors.primary, fontSize: 12 }}
           isSubTitle
-          text={title ?? 'Untitled Auction'}
+          text={title ?? "Untitled Auction"}
           numberOfLines={2}
         />
 
@@ -110,8 +95,8 @@ const AuctionItemComponent = ({ item = {} }) => {
             customStyles={{ color: Colors.primary, fontSize: 18 }}
           />
           <Button
-            title={'Bid Now'}
-            buttonStyle={{ height: 32, width: '48%', borderRadius: 10 }}
+            title={"Bid Now"}
+            buttonStyle={{ height: 32, width: "48%", borderRadius: 10 }}
             disabled={!isActive}
             onPress={getAuctionDetails}
           />
@@ -128,7 +113,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 16,
     marginTop: Metrix.VerticalSize(16),
-    overflow: 'hidden',
+    overflow: "hidden",
     shadowColor: Colors.primary,
     shadowOffset: { width: 2, height: 5 },
     shadowOpacity: 0.2,
@@ -137,15 +122,15 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     borderWidth: 0.5,
     margin: 8,
-    width: '46%',
+    width: "46%",
   },
   heroImage: {
-    width: '100%',
+    width: "100%",
     height: 150,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     left: 8,
     paddingHorizontal: 8,
@@ -161,7 +146,7 @@ const styles = StyleSheet.create({
   timerContainer: {
     backgroundColor: Colors.primaryLight,
     borderRadius: 18,
-    justifyContent: 'center',
+    justifyContent: "center",
     margin: 6,
     paddingVertical: 4,
   },
@@ -173,13 +158,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.Medium,
     color: Colors.grayText,
     marginBottom: 2,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 4,
   },
 });

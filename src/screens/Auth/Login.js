@@ -8,29 +8,29 @@ import {
   Platform,
   useColorScheme,
   KeyboardAvoidingView,
-} from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { Colors, Images, Metrix, NavigationService } from '../../config';
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import { Colors, Images, Metrix, NavigationService } from "../../config";
 import {
   Button,
   CustomModal,
   TextComponent,
   TextField,
-} from '../../components';
-import { emailValidityCheck, fonts, ToastError } from '../../config/Constants';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useDispatch, useSelector } from 'react-redux';
-import { AuthMiddleware } from '../../redux/Middlewares';
-import { Toast } from 'react-native-toast-message/lib/src/Toast';
+} from "../../components";
+import { emailValidityCheck, fonts, ToastError } from "../../config/Constants";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import { useDispatch, useSelector } from "react-redux";
+import { AuthMiddleware } from "../../redux/Middlewares";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
 
 export default function Login() {
   const dispatch = useDispatch();
-  const AD = 'advertiser';
-  const MP = 'mobility_partner';
+  const AD = "advertiser";
+  const MP = "mobility_partner";
   const [emailAddress, setEmailAddress] = useState(
-    __DEV__ ? 'dev3@yopmail.com' : '',
+    __DEV__ ? "dev3@yopmail.com" : "",
   );
-  const [password, setPassword] = useState(__DEV__ ? 'abcd@1234' : '');
+  const [password, setPassword] = useState(__DEV__ ? "abcd@1234" : "");
   const [seePassword, setSeePassword] = useState(false);
   const [isAd, set_isAd] = useState(true);
 
@@ -40,11 +40,11 @@ export default function Login() {
 
   const loginUser = async () => {
     if (!emailAddress) {
-      Toast.show(ToastError('Please input an email address.'));
+      Toast.show(ToastError("Please input an email address."));
       return;
     }
     if (!emailValidityCheck(emailAddress)) {
-      Toast.show(ToastError('Please enter a valid email address.'));
+      Toast.show(ToastError("Please enter a valid email address."));
       return;
     }
 
@@ -52,19 +52,19 @@ export default function Login() {
       email: emailAddress,
       password: password,
     };
-    console.log('Payload:', payload);
+    console.log("Payload:", payload);
 
     dispatch(AuthMiddleware.Login(payload))
-      .then(data => {
-        console.log('Login Success:', data);
-        NavigationService.resetStack('UserStack');
+      .then((data) => {
+        console.log("Login Success:", data);
+        NavigationService.resetStack("UserStack");
         //  setCode(data?.data || '');
         //  setIsLoginSuccess(true);
         //  connectAndFetchMessages({ emailAddress });
         //  dispatch(AuthAction.SaveEmail(emailAddress));
         //  _timer();
       })
-      .catch(err => console.warn(err));
+      .catch((err) => console.warn(err));
   };
 
   return (
@@ -89,10 +89,10 @@ export default function Login() {
         <View>
           <View
             style={{
-              alignItems: 'center',
+              alignItems: "center",
             }}
           >
-            <TextComponent text={'Welcome Back!'} customStyles={styles.title} />
+            <TextComponent text={"Welcome Back!"} customStyles={styles.title} />
             <TextComponent
               text=" Enter your credentials to access your account"
               customStyles={styles.subTitle}
@@ -102,43 +102,22 @@ export default function Login() {
           <View
             style={{
               marginTop: Metrix.VerticalSize(20),
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}
-          >
-            <Button
-              isOutline={!isAd}
-              title={'Advertiser Login'}
-              onPress={() => set_isAd(!isAd)}
-              buttonStyle={{ marginRight: 5, flex: 1 }}
-            />
-            <Button
-              isOutline={isAd}
-              title={'Partner Login'}
-              onPress={() => set_isAd(!isAd)}
-              buttonStyle={{ marginLeft: 5, flex: 1 }}
-            />
-          </View>
-
-          <View
-            style={{
-              marginTop: Metrix.VerticalSize(60),
             }}
           >
             <TextField
               label="Email Address"
               value={emailAddress}
-              onChangeText={text => setEmailAddress(text.toLowerCase())}
+              onChangeText={(text) => setEmailAddress(text.toLowerCase())}
             />
             <TextField
               label="Password"
               value={password}
-              onChangeText={text => setPassword(text)}
+              onChangeText={(text) => setPassword(text)}
               secureTextEntry={seePassword ? true : false}
               rightIcon={
                 <TouchableOpacity onPress={toggleSeePassword}>
                   <Ionicons
-                    name={seePassword ? 'eye-outline' : 'eye-off-outline'}
+                    name={seePassword ? "eye-outline" : "eye-off-outline"}
                     color={Colors.darkGray}
                     size={Metrix.customFontSize(20)}
                   />
@@ -146,30 +125,30 @@ export default function Login() {
               }
             />
             <TextComponent
-              onPress={() => NavigationService.navigate('ForgotPassword')}
+              onPress={() => NavigationService.navigate("ForgotPassword")}
               text="Forgot Password"
               customStyles={styles.forgetText}
             />
           </View>
 
           <View style={{ marginTop: Metrix.VerticalSize(20) }}>
-            <Button title={'Login'} onPress={loginUser} />
+            <Button title={"Login"} onPress={loginUser} />
           </View>
         </View>
 
-        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+        <View style={{ flex: 1, justifyContent: "flex-end" }}>
           <View style={styles.linkContainer}>
             <TextComponent
               text="Don't have an account? "
               customStyles={{
-                textAlign: 'center',
+                textAlign: "center",
                 color: Colors.textColor,
               }}
             />
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => {
-                NavigationService.navigate('SignUp', { isAd: isAd });
+                NavigationService.navigate("SignUp");
               }}
             >
               <TextComponent
@@ -189,13 +168,13 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignContent: 'center',
+    justifyContent: "center",
+    alignContent: "center",
     backgroundColor: Colors.background,
   },
 
   title: {
-    width: '100%',
+    width: "100%",
     fontSize: Metrix.customFontSize(30),
     fontFamily: fonts.Bold,
     color: Colors.primary,
@@ -203,7 +182,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   subTitle: {
-    width: '100%',
+    width: "100%",
     fontFamily: fonts.Regular,
     color: Colors.textColor,
     paddingTop: 10,
@@ -211,7 +190,7 @@ const styles = StyleSheet.create({
   },
 
   eyeIconStyle: {
-    position: 'absolute',
+    position: "absolute",
     zIndex: 100,
     top: Metrix.VerticalSize(30),
     right: Metrix.HorizontalSize(5),
@@ -224,17 +203,17 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   forgetPassword: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: Metrix.VerticalSize(5),
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
 
   linkContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: Metrix.VerticalSize(50),
     // position: 'absolute',
     // bottom: Metrix.VerticalSize(50),
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   logo: {
     height: Metrix.VerticalSize(153),
@@ -259,15 +238,15 @@ const styles = StyleSheet.create({
     height: Metrix.VerticalSize(42),
     width: Metrix.VerticalSize(42),
     marginTop: Metrix.VerticalSize(20),
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   circle: {
     backgroundColor: Colors.lightBlue,
     borderRadius: 100,
     width: Metrix.HorizontalSize(20),
     height: Metrix.VerticalSize(20),
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: Metrix.HorizontalSize(5),
   },
   circleText: {
@@ -279,11 +258,11 @@ const styles = StyleSheet.create({
     color: Colors.black,
     fontSize: Metrix.customFontSize(14),
     fontFamily: fonts.Bold,
-    textAlign: 'center',
+    textAlign: "center",
   },
   dialogHeadingRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

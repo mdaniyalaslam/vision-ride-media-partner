@@ -5,28 +5,29 @@ import {
   TouchableOpacity,
   Image,
   Platform,
-} from 'react-native';
-import React from 'react';
-import { Colors, Images, Metrix, NavigationService } from '../config';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { useNavigation, useTheme } from '@react-navigation/native';
-import { fonts } from '../config/Constants';
-import { useSelector } from 'react-redux';
+} from "react-native";
+import React from "react";
+import { Colors, Images, Metrix, NavigationService } from "../config";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { useNavigation, useTheme } from "@react-navigation/native";
+import { fonts } from "../config/Constants";
+import { useSelector } from "react-redux";
+import TextComponent from "./TextComponent";
 export default function HeroHeader({ title = null }) {
   const navigation = useNavigation();
-  const { user } = useSelector(state => state.AuthReducer);
+  const { user } = useSelector((state) => state.AuthReducer);
   return (
     <View style={styles.containerTopRound}>
       <View
         style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
         <Image source={Images.logo} style={styles.avatar} />
         <Text style={styles.title}>
-          Hi, {user?.first_name + ' ' + user?.last_name || 'User'}
+          Hi, {user?.first_name + " " + user?.last_name || "User"}
         </Text>
       </View>
       {/* <TouchableOpacity
@@ -50,12 +51,13 @@ export default function HeroHeader({ title = null }) {
 
 const styles = StyleSheet.create({
   avatar: {
-    width: 50,
+    width: 150,
     height: 50,
-    borderRadius: Metrix.HorizontalSize(100),
+    // borderRadius: Metrix.HorizontalSize(100),
+    resizeMode: "contain",
   },
   containerTopRound: {
-    height: Metrix.isApi35 ? 150 : Metrix.isIOS ? 150 : 110,
+    height: Metrix.isApi35 ? 110 : Metrix.isIOS ? 110 : 70,
     backgroundColor: Colors.primary,
     padding: 18,
     paddingTop: Metrix.isApi35 ? 50 : Metrix.isIOS ? 50 : 10,

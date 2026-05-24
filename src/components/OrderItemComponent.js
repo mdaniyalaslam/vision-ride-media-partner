@@ -8,7 +8,7 @@ import { HomeMiddleware } from "../redux/Middlewares";
 import { useDispatch, useSelector } from "react-redux";
 import Tag from "./Tag";
 
-const HomeItemComponent = ({ item, index }) => {
+const OrderItemComponent = ({ item, index }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.AuthReducer);
   const product = item?.product || {};
@@ -27,7 +27,7 @@ const HomeItemComponent = ({ item, index }) => {
   );
 
   const getAuctionDetails = () => {
-    NavigationService.navigate("VehicleDetails");
+    NavigationService.navigate("OrderDetails");
     return;
     dispatch(HomeMiddleware.GetAuctionDetails(product.id, user?.token)).then(
       (res) => {
@@ -116,7 +116,7 @@ const HomeItemComponent = ({ item, index }) => {
               fontSize: Metrix.customFontSize(10),
             }}
           >
-            Avg. Monthly Mileage
+            Order ID
           </Text>
           {/* <Text style={styles.itemName}>$1</Text> */}
           <TextComponent
@@ -145,7 +145,7 @@ const HomeItemComponent = ({ item, index }) => {
               fontSize: Metrix.customFontSize(10),
             }}
           >
-            Monthly Amount
+            Order Date
           </Text>
           {/* <Text style={styles.itemName}>12 Jan 24</Text> */}
           <TextComponent
@@ -159,7 +159,7 @@ const HomeItemComponent = ({ item, index }) => {
   );
 };
 
-export default HomeItemComponent;
+export default OrderItemComponent;
 
 const styles = StyleSheet.create({
   itemContainer: {

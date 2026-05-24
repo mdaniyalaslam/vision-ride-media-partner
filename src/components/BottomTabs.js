@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -7,32 +7,32 @@ import {
   Platform,
   TouchableOpacity,
   Keyboard,
-} from 'react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Colors, Images, Metrix, NavigationService } from '../config';
-import { fonts } from '../config/Constants';
-import { useTheme } from '@react-navigation/native';
-import Home from '../screens/Apps/Home';
-import Profile from '../screens/Apps/Profile';
-import More from '../screens/Apps/More';
-import AddCar from '../screens/Apps/AddCar';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+} from "react-native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Colors, Images, Metrix, NavigationService } from "../config";
+import { fonts } from "../config/Constants";
+import { useTheme } from "@react-navigation/native";
+import Home from "../screens/Apps/Home";
+import Profile from "../screens/Apps/Profile";
+import More from "../screens/Apps/More";
+import AddCar from "../screens/Apps/AddCar";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
-import Entypo from 'react-native-vector-icons/Entypo';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Entypo from "react-native-vector-icons/Entypo";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
-import { Support, Auctions, Orders, SupportMain } from '../screens';
-import TextComponent from './TextComponent';
-import Badge from './Badge';
+import { Support, Auctions, Orders, SupportMain, MyOrders } from "../screens";
+import TextComponent from "./TextComponent";
+import Badge from "./Badge";
 const BottomTabs = () => {
   const Tab = createBottomTabNavigator();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => {
+    const showSub = Keyboard.addListener("keyboardDidShow", () => {
       setKeyboardVisible(true);
     });
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
       setKeyboardVisible(false);
     });
 
@@ -84,7 +84,7 @@ const BottomTabs = () => {
                 />
               </View>
               <TextComponent
-                text="My Bids"
+                text="Vehicles"
                 customStyles={styles.tabLabel(focused)}
               />
             </>
@@ -92,20 +92,20 @@ const BottomTabs = () => {
         }}
       />
       <Tab.Screen
-        name="Auctions"
-        component={Auctions}
+        name="MyOrders"
+        component={MyOrders}
         options={{
           tabBarIcon: ({ focused }) => (
             <>
               <View style={styles.tabContainer}>
                 <Ionicons
-                  name={'hammer'}
+                  name={"file-tray"}
                   color={focused ? Colors.primary : Colors.textColor}
                   size={22}
                 />
               </View>
               <TextComponent
-                text="Auctions"
+                text="Orders"
                 customStyles={styles.tabLabel(focused)}
               />
             </>
@@ -113,27 +113,14 @@ const BottomTabs = () => {
         }}
       />
       <Tab.Screen
-        name="Oders"
-        component={Orders}
+        name="_AddCar"
+        component={AddCar}
         options={{
           tabBarIcon: ({ focused }) => (
-            // <>
-            //   <View style={styles.tabContainer}>
-            //     <MaterialIcons
-            //       name={'inbox'}
-            //       color={focused ? Colors.primary : Colors.textColor}
-            //       size={22}
-            //     />
-            //   </View>
-            //   <TextComponent
-            //     text="Orders"
-            //     customStyles={styles.tabLabel(focused)}
-            //   />
-            // </>
             <TouchableOpacity
               style={{ ...styles.fabContainer }}
               onPress={() =>
-                NavigationService.navigate('AddCar', { cardAdded: false })
+                NavigationService.navigate("AddCar", { cardAdded: false })
               }
             >
               <View style={styles.fabButton}>
@@ -155,7 +142,7 @@ const BottomTabs = () => {
             <>
               <View style={styles.tabContainer}>
                 <Entypo
-                  name={'message'}
+                  name={"message"}
                   color={focused ? Colors.primary : Colors.textColor}
                   size={22}
                 />
@@ -201,26 +188,26 @@ const styles = StyleSheet.create({
   tabIcon: {
     width: 18,
     height: 18,
-    alignItems: 'center',
+    alignItems: "center",
   },
   tabContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     // padding: 10,
     // marginTop: 40,
   },
-  tabLabel: focused => ({
+  tabLabel: (focused) => ({
     color: focused ? Colors.primary : Colors.textColor,
     fontFamily: focused ? fonts.SemiBold : fonts.Regular,
     // fontSize: Metrix.customFontSize(12),
     marginTop: 10,
     width: 70,
-    textAlign: 'center',
+    textAlign: "center",
   }),
   fabContainer: {
     top: -30, // Adjust as needed to position the FAB
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 10,
   },
   fabButton: {
@@ -228,8 +215,8 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     elevation: 5,
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 5 },
@@ -239,7 +226,7 @@ const styles = StyleSheet.create({
   fabText: {
     color: Colors.white,
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 

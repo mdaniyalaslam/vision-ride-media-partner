@@ -4,445 +4,281 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  ImageBackground,
   ScrollView,
-  FlatList,
-  Alert,
-} from 'react-native';
-import React, { useState } from 'react';
-import { Colors, Images, Metrix, NavigationService } from '../../config';
-import { fonts, ToastError } from '../../config/Constants';
-import { Button, CustomModal, Header, TextField } from '../../components';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import HomeItemComponent from '../../components/HomeItemComponent';
-import DropDownPicker from 'react-native-dropdown-picker';
-import useStyle from '../styles';
-import ImageCropPicker from 'react-native-image-crop-picker';
-import Toast from 'react-native-toast-message';
+} from "react-native";
+import React, { useState } from "react";
+import { Colors, Metrix } from "../../config";
+import { fonts } from "../../config/Constants";
+import { Button, DropdownField, Header, TextField } from "../../components";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import ImageCropPicker from "react-native-image-crop-picker";
+
+const pickSingleImage = (onSelect) => {
+  ImageCropPicker.openPicker({ width: 400, height: 400, cropping: false })
+    .then((image) => onSelect({ uri: image.path, mime: image.mime }))
+    .catch((err) => console.log(err));
+};
+
+const ImagePickerField = ({ label, value, onPress }) => (
+  <View style={styles.imagePickerWrapper}>
+    <Text style={styles.imagePickerLabel}>{label}</Text>
+    <TouchableOpacity
+      style={styles.imagePickerBtn}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      {value ? (
+        <Image source={{ uri: value.uri }} style={styles.imagePickerThumb} />
+      ) : (
+        <View style={styles.imagePickerPlaceholder}>
+          <Ionicons
+            name="cloud-upload-outline"
+            size={Metrix.customFontSize(18)}
+            color={Colors.primary}
+          />
+          <Text style={styles.imagePickerText}>Choose file</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  </View>
+);
 
 const AddCar = ({ route }) => {
   const { cardAdded } = route?.params;
 
-  const [carName, setCarName] = useState('');
-  const [model, setModel] = useState('');
-  const [year, setYear] = useState('');
-  const [vehicleNum, setVehicleNum] = useState('');
-  const [RegistrationNum, setRegistrationNum] = useState('');
-  const [apiAccountList, setapiAccountList] = useState([{}, {}]);
-  const gStyle = useStyle();
+  const [make, setMake] = useState("");
+  const [model, setModel] = useState("");
+  const [modelCode, setModelCode] = useState("");
+  const [type, setType] = useState(null);
+  const [year, setYear] = useState(null);
+  const [registrationNum, setRegistrationNum] = useState("");
+  const [vinNumber, setVinNumber] = useState("");
+  const [mileage, setMileage] = useState("");
+  const [insuranceImage, setInsuranceImage] = useState(null);
+  const [vehicleImages, setVehicleImages] = useState({
+    front: null,
+    rear: null,
+    leftSide: null,
+    rightSide: null,
+    mileageDashboard: null,
+    topView: null,
+  });
 
-  const [id, setId] = useState(null);
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(null);
-  const [items, setItems] = useState([
-    { label: '3 SERIES', value: 4, id: 4 },
-    { label: '4 SERIES', value: 3, id: 3 },
-  ]);
-  const [showModal, setShowModal] = useState(false);
-  const openModal = () => setShowModal(true);
-  const closeModal = () => setShowModal(false);
-
-  const [uploadedImages, setUploadedImages] = useState([]);
-  const MAX_IMAGES = 10; // Set max image limit
-
-  const openCamera = () => {
-    if (uploadedImages.length >= MAX_IMAGES) {
-      Alert.alert(
-        'Limit Reached',
-        `You can only select up to ${MAX_IMAGES} images.`,
-      );
-      return;
-    }
-    ImageCropPicker.openCamera({
-      width: 300,
-      height: 400,
-      cropping: false,
-    })
-      .then(image => {
-        console.log('camera image', image);
-
-        const img = {
-          name:
-            Math.floor(Math.random() * 100) +
-            image?.modificationDate +
-            Math.floor(Math.random() * 100) +
-            '.jpg',
-          uri: image.path,
-          type: 'image/png',
-        };
-        closeModal();
-        setUploadedImages([...uploadedImages, ...img]);
-      })
-      .catch(err => {
-        Toast.show(ToastError(err.message));
-      });
-  };
-  const openImagePicker = () => {
-    if (uploadedImages.length >= MAX_IMAGES) {
-      Alert.alert(
-        'Limit Reached',
-        `You can only select up to ${MAX_IMAGES} images.`,
-      );
-      return;
-    }
-
-    ImageCropPicker.openPicker({
-      width: 400,
-      height: 400,
-      cropping: false,
-      multiple: true,
-      maxFiles: MAX_IMAGES - uploadedImages.length,
-    })
-      .then(selectedImages => {
-        const imageArray = selectedImages.map(image => ({
-          id: Math.random().toString(), // Unique ID for each image
-          name:
-            Math.floor(Math.random() * 100) +
-            image?.modificationDate +
-            Math.floor(Math.random() * 100) +
-            '.jpg',
-          uri: image.path,
-          mime: image.mime,
-        }));
-        closeModal();
-        // uploadImages([...uploadedImages, ...imageArray]);
-        setUploadedImages([...uploadedImages, ...imageArray]);
-      })
-      .catch(err => {
-        console.log(err, 'error');
-      });
-  };
-
-  const removeImageByIndex = index => {
-    setUploadedImages(prevImages => prevImages.filter((_, i) => i !== index));
-  };
-  const uploadImages = imagesarr => {
-    const formData = new FormData();
-    imagesarr.forEach((image, index) => {
-      console.log('Image ===>', image);
-
-      formData.append('images', {
-        uri: image.uri.startsWith('file://')
-          ? image.uri
-          : `file://${image.uri}`, // Ensure correct URI format
-        name: image.name || `image_${index}.jpg`, // Set a proper name with an extension
-        type: image.mime || 'image/jpeg', // Set the MIME type correctly
-      });
-    });
-
-    if (formData._parts.length > 0) {
-      //   dispatch(
-      //     HomeMiddleware.UploadNewsfeedMedia({
-      //       formData, // Pass the FormData object
-      //     }),
-      //   )
-      //     .then(res => {
-      //       console.log('UploadNewsfeedMedia ==>>', res);
-      //       setUploadedImages(res?.data);
-      //     })
-      //     .catch(error => {
-      //       console.error('UploadNewsfeedMedia Error ==>>', error);
-      //     });
-      // } else {
-      //   console.error('No images to upload.');
-    }
-  };
   return (
-    <ScrollView
-      style={styles.container}
-      keyboardShouldPersistTaps="handled"
-      bounces={false}
-    >
-      <View>
-        <Header
-          backIcon={true}
-          title={cardAdded ? 'Your Car Details' : 'Add Your Car'}
-          notificationIcon={false}
-        />
+    <>
+      <Header
+        backIcon={true}
+        title={cardAdded ? "Your Car Details" : "Add New Vehicle"}
+        notificationIcon={false}
+      />
+      <ScrollView
+        style={styles.container}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
+      >
+        <View style={styles.formContainer}>
+          {/* Row 1: Make | Model */}
+          <View style={styles.row}>
+            <View style={styles.halfField}>
+              <TextField
+                label="Make"
+                value={make}
+                placeholder="e.g., Toyota"
+                onChangeText={setMake}
+              />
+            </View>
+            <View style={styles.halfField}>
+              <TextField
+                label="Model"
+                value={model}
+                placeholder="e.g., Corolla"
+                onChangeText={setModel}
+              />
+            </View>
+          </View>
 
-        <View>
-          <Text style={styles.subTitle}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua.
-          </Text>
-          <View style={{ flexDirection: 'row' }}>
-            <TouchableOpacity
-              onPress={() => {
-                // openModal();
-                openImagePicker();
-              }}
-            >
-              <ImageBackground
-                source={Images.camera_img}
-                style={{
-                  ...styles.logo,
-                  marginLeft: Metrix.HorizontalSize(25),
-                }}
-              >
-                <Ionicons
-                  name={'add'}
-                  size={Metrix.customFontSize(16)}
-                  color={Colors.primary}
-                  style={{
-                    alignSelf: 'flex-end',
-                    marginTop: 10,
-                    marginRight: 7,
-                    borderRadius: 100,
-                    backgroundColor: Colors.white,
-                  }}
-                />
-              </ImageBackground>
-            </TouchableOpacity>
-            <FlatList
-              horizontal={true}
-              showsVerticalScrollIndicator={false}
-              data={uploadedImages}
-              onEndReached={() => {
-                // if (apiAccountList.length < recordCount) {
-                //   onEndReached();
-                // }
-              }}
-              onEndReachedThreshold={0.7}
-              ListEmptyComponent={() => <></>}
-              ListFooterComponent={() => (
-                <View style={{ height: Metrix.HorizontalSize(20) }}></View>
-              )}
-              renderItem={({ item, index }) => {
-                return (
-                  <View style={styles.logo}>
-                    <Image
-                      source={item ? item : Images.dummy_car}
-                      style={{
-                        width: Metrix.HorizontalSize(93),
-                        height: Metrix.VerticalSize(93),
-                        borderRadius: Metrix.HorizontalSize(12),
-                      }}
-                    />
+          {/* Row 2: Model Code | Type */}
+          <View style={styles.row}>
+            <View style={styles.halfField}>
+              <TextField
+                label="Model Code"
+                value={modelCode}
+                placeholder="e.g., TCR-2025"
+                onChangeText={setModelCode}
+              />
+            </View>
+            <View style={styles.halfField}>
+              <DropdownField
+                label="Type"
+                placeholder={type ? type.name : "Select Type"}
+                updateValue={(obj) => setType(obj)}
+                modalTitle="Select Type"
+                data={[
+                  { name: "Sedan" },
+                  { name: "SUV" },
+                  { name: "Truck" },
+                  { name: "Hatchback" },
+                  { name: "Other" },
+                ]}
+              />
+            </View>
+          </View>
 
-                    <TouchableOpacity
-                      onPress={() => {
-                        removeImageByIndex(index);
-                      }}
-                      style={{
-                        // alignSelf: 'flex-end',
-                        marginTop: 10,
-                        marginLeft: 75,
-                        borderRadius: 100,
-                        position: 'absolute',
-                        backgroundColor: Colors.lightBlue,
-                      }}
-                    >
-                      <Ionicons
-                        name={'close'}
-                        size={Metrix.customFontSize(16)}
-                        color={Colors.white}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                );
-              }}
-              keyExtractor={item => item.id}
+          {/* Row 3: Year | Registration Number */}
+          <View style={styles.row}>
+            <View style={styles.halfField}>
+              <DropdownField
+                label="Year"
+                placeholder={year ? year.name : "Select Year"}
+                updateValue={(obj) => setYear(obj)}
+                modalTitle="Select Year"
+                data={Array.from({ length: 36 }, (_, i) => ({
+                  name: String(2025 - i),
+                }))}
+              />
+            </View>
+            <View style={styles.halfField}>
+              <TextField
+                label="Registration Number"
+                value={registrationNum}
+                placeholder="e.g., ABC-321"
+                onChangeText={setRegistrationNum}
+              />
+            </View>
+          </View>
+
+          {/* Row 4: VIN Number full width */}
+          <TextField
+            label="VIN Number"
+            value={vinNumber}
+            placeholder="e.g., 1HGBH41JXMN109186"
+            onChangeText={setVinNumber}
+            maxLength={17}
+          />
+
+          {/* Row 5: Average Monthly Mileage | Insurance Confirmation */}
+          <View style={styles.row}>
+            <View style={styles.halfField}>
+              <TextField
+                label="Average Monthly Mileage (mi)"
+                value={mileage}
+                placeholder="e.g., 1500"
+                onChangeText={setMileage}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={styles.halfField}>
+              <ImagePickerField
+                label="Insurance Confirmation"
+                value={insuranceImage}
+                onPress={() => pickSingleImage(setInsuranceImage)}
+              />
+            </View>
+          </View>
+
+          {/* Vehicle Images Section */}
+          <View style={styles.sectionHeader}>
+            <MaterialCommunityIcons
+              name="camera"
+              size={Metrix.customFontSize(18)}
+              color={Colors.primary}
             />
+            <Text style={styles.sectionTitle}>
+              {" "}
+              Vehicle Images (By Position)
+            </Text>
           </View>
 
-          <View
-            style={{
-              marginHorizontal: Metrix.HorizontalSize(25),
-              marginTop: Metrix.VerticalSize(6),
-            }}
-          >
-            <View style={{ marginVertical: Metrix.VerticalSize(10) }}>
-              <Text style={styles.labelText}> Car Name </Text>
-              <TextField
-                value={carName}
-                onChangeText={text => setCarName(text)}
-                placeholder=""
+          {/* Row 6: Front View | Rear View */}
+          <View style={styles.row}>
+            <View style={styles.halfField}>
+              <ImagePickerField
+                label="↑ Front View"
+                value={vehicleImages.front}
+                onPress={() =>
+                  pickSingleImage((img) =>
+                    setVehicleImages((prev) => ({ ...prev, front: img })),
+                  )
+                }
               />
             </View>
-
-            <View style={{ marginVertical: Metrix.VerticalSize(10) }}>
-              <Text style={styles.labelText}> Model </Text>
-
-              <DropDownPicker
-                placeholder="Select model"
-                style={styles.dropdownContainer}
-                dropDownContainerStyle={styles.dropdownList}
-                labelStyle={{
-                  color: Colors.labelColor,
-                  fontSize: Metrix.customFontSize(12),
-                  fontFamily: fonts.Regular,
-                }}
-                textStyle={{
-                  color: Colors.black,
-                  fontSize: Metrix.customFontSize(12),
-                  fontFamily: fonts.Regular,
-                }}
-                arrowIconStyle={{
-                  tintColor: Colors.lightBlue,
-                }}
-                tickIconStyle={{
-                  tintColor: Colors.lightBlue,
-                }}
-                open={open}
-                value={value}
-                items={items}
-                id={id}
-                setId={setId}
-                setOpen={setOpen}
-                setValue={setValue}
-                setItems={setItems}
+            <View style={styles.halfField}>
+              <ImagePickerField
+                label="↓ Rear View"
+                value={vehicleImages.rear}
+                onPress={() =>
+                  pickSingleImage((img) =>
+                    setVehicleImages((prev) => ({ ...prev, rear: img })),
+                  )
+                }
               />
             </View>
-
-            <View style={{ marginVertical: Metrix.VerticalSize(10) }}>
-              <Text style={styles.labelText}> Year </Text>
-              <TextField
-                value={year}
-                onChangeText={text => setYear(text)}
-                placeholder=""
-              />
-            </View>
-
-            <View style={{ marginVertical: Metrix.VerticalSize(10) }}>
-              <Text style={styles.labelText}>
-                {' '}
-                Vehicle Identification Number{' '}
-              </Text>
-              <TextField
-                value={vehicleNum}
-                onChangeText={text => setVehicleNum(text)}
-                placeholder=""
-              />
-            </View>
-
-            <View style={{ marginVertical: Metrix.VerticalSize(10) }}>
-              <Text style={styles.labelText}> Registration Number </Text>
-              <TextField
-                value={RegistrationNum}
-                onChangeText={text => setRegistrationNum(text)}
-                placeholder=""
-              />
-            </View>
-            {cardAdded ? (
-              <>
-                <Button
-                  title={'  Download Insurance Proof'}
-                  onPress={() => {}}
-                  btnStyle={{
-                    backgroundColor: Colors.background,
-                    borderRadius: 12,
-                    borderWidth: 1,
-                    borderColor: Colors.primary,
-                  }}
-                  textStyle={{
-                    color: Colors.primary,
-                    fontFamily: fonts.SemiBold,
-                    textDecorationLine: 'underline',
-                  }}
-                  preIcon={
-                    <AntDesign
-                      name={'download'}
-                      size={Metrix.customFontSize(16)}
-                      color={Colors.primary}
-                    />
-                  }
-                />
-                <Button
-                  title={'Report An Accident'}
-                  onPress={() => {
-                    NavigationService.navigate('ReportAnAccident', {
-                      screen: 'Report',
-                    });
-                  }}
-                  btnStyle={{
-                    backgroundColor: Colors.redDark,
-                    marginTop: Metrix.VerticalSize(10),
-                  }}
-                />
-                <Button
-                  title={'Purchase a Comprehensive Plan'}
-                  onPress={() => {
-                    NavigationService.navigate('Evaluating', {
-                      screen: 'comprehensive',
-                    });
-                  }}
-                  btnStyle={{
-                    marginTop: Metrix.VerticalSize(10),
-                  }}
-                />
-
-                <View style={{ height: 40 }}></View>
-              </>
-            ) : (
-              <View style={{ marginVertical: Metrix.VerticalSize(20) }}>
-                <Button
-                  title={'Next'}
-                  onPress={() => {
-                    NavigationService.navigate('Evaluating', {
-                      screen: 'evaluating',
-                    });
-                  }}
-                />
-              </View>
-            )}
           </View>
+
+          {/* Row 7: Left Side View | Right Side View */}
+          <View style={styles.row}>
+            <View style={styles.halfField}>
+              <ImagePickerField
+                label="← Left Side View"
+                value={vehicleImages.leftSide}
+                onPress={() =>
+                  pickSingleImage((img) =>
+                    setVehicleImages((prev) => ({ ...prev, leftSide: img })),
+                  )
+                }
+              />
+            </View>
+            <View style={styles.halfField}>
+              <ImagePickerField
+                label="→ Right Side View"
+                value={vehicleImages.rightSide}
+                onPress={() =>
+                  pickSingleImage((img) =>
+                    setVehicleImages((prev) => ({ ...prev, rightSide: img })),
+                  )
+                }
+              />
+            </View>
+          </View>
+
+          {/* Row 8: Mileage/Dashboard | Top View */}
+          <View style={styles.row}>
+            <View style={styles.halfField}>
+              <ImagePickerField
+                label="Mileage/Dashboard"
+                value={vehicleImages.mileageDashboard}
+                onPress={() =>
+                  pickSingleImage((img) =>
+                    setVehicleImages((prev) => ({
+                      ...prev,
+                      mileageDashboard: img,
+                    })),
+                  )
+                }
+              />
+            </View>
+            <View style={styles.halfField}>
+              <ImagePickerField
+                label="Top View"
+                value={vehicleImages.topView}
+                onPress={() =>
+                  pickSingleImage((img) =>
+                    setVehicleImages((prev) => ({ ...prev, topView: img })),
+                  )
+                }
+              />
+            </View>
+          </View>
+
+          <View style={{ height: Metrix.VerticalSize(30) }} />
+          <Button
+            title="Add Vehicle"
+            // onPress={handleSubmit}
+          />
         </View>
-        <CustomModal
-          title={'Add you Car Images'}
-          show={showModal}
-          onCloseModal={closeModal}
-        >
-          <View style={styles.modalStyle}>
-            {
-              <View style={styles.modalBtnContainer}>
-                <View style={{ width: '48%' }}>
-                  <Button
-                    title={'Open Camera'}
-                    textStyle={{ marginLeft: Metrix.HorizontalSize(5) }}
-                    btnStyle={{ paddingVertical: Metrix.VerticalSize(10) }}
-                    preIcon={
-                      <MaterialCommunityIcons
-                        name="camera"
-                        size={Metrix.customFontSize(18)}
-                        color={Colors.white}
-                      />
-                    }
-                    onPress={openCamera}
-                    shadow
-                  />
-                </View>
-                <View style={{ width: '48%' }}>
-                  <Button
-                    title={'Open Gallery'}
-                    textStyle={{
-                      marginLeft: Metrix.HorizontalSize(5),
-                      color: Colors.primary,
-                    }}
-                    preIcon={
-                      <MaterialCommunityIcons
-                        name="folder-multiple-image"
-                        size={Metrix.customFontSize(18)}
-                        color={Colors.primary}
-                      />
-                    }
-                    btnStyle={{
-                      paddingVertical: Metrix.VerticalSize(10),
-                      backgroundColor: Colors.white,
-                      borderWidth: 1,
-                      borderColor: Colors.primary,
-                    }}
-                    onPress={openImagePicker}
-                    shadow
-                  />
-                </View>
-              </View>
-            }
-          </View>
-        </CustomModal>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 };
 
@@ -453,99 +289,58 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-
-  title: {
-    fontSize: Metrix.customFontSize(25),
+  formContainer: {
+    marginHorizontal: Metrix.HorizontalSize(20),
+    marginTop: Metrix.VerticalSize(10),
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  halfField: {
+    width: "48%",
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: Metrix.VerticalSize(20),
+    marginBottom: Metrix.VerticalSize(6),
+  },
+  sectionTitle: {
     fontFamily: fonts.Bold,
-    color: Colors.white,
-    textAlign: 'left',
+    fontSize: Metrix.customFontSize(14),
+    color: Colors.primary,
   },
-  titleBig: {
-    fontSize: Metrix.customFontSize(32),
-    fontFamily: fonts.Bold,
-    color: Colors.white,
-    textAlign: 'center',
-    marginHorizontal: Metrix.HorizontalSize(45),
-    marginTop: Metrix.VerticalSize(30),
+  imagePickerWrapper: {
+    marginTop: Metrix.VerticalSize(10),
   },
-  subTitle: {
-    // flex: 1,
-    fontFamily: fonts.Regular,
-    fontSize: Metrix.customFontSize(12),
-    marginHorizontal: Metrix.HorizontalSize(30),
-    color: Colors.textColor,
-    // textAlign: 'center',
-    marginTop: Metrix.VerticalSize(14),
-  },
-  labelText: {
+  imagePickerLabel: {
     fontFamily: fonts.Medium,
     fontSize: Metrix.customFontSize(11),
     color: Colors.labelColor,
+    marginBottom: Metrix.VerticalSize(10),
   },
-  tabIcon: {
-    width: Metrix.HorizontalSize(24),
-    height: Metrix.VerticalSize(24),
-    alignItems: 'center',
-    tintColor: Colors.primary,
+  imagePickerBtn: {
+    borderRadius: 12,
+    backgroundColor: Colors.textFiledBG,
+    height: Metrix.VerticalSize(48),
+    justifyContent: "center",
+    overflow: "hidden",
   },
-  containerEmpty: {
-    width: '100%',
-    height: Metrix.VerticalSize(400),
-
-    // marginHorizontal: Metrix.HorizontalSize(25),
-    // backgroundColor: Colors.lightBlue,
-    borderRadius: Metrix.HorizontalSize(12),
+  imagePickerPlaceholder: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Metrix.HorizontalSize(10),
+    gap: 6,
   },
-  logo: {
-    width: Metrix.HorizontalSize(93),
-    height: Metrix.VerticalSize(93),
-    marginTop: Metrix.VerticalSize(10),
-    marginLeft: Metrix.HorizontalSize(12),
-  },
-
-  dropdownContainer: {
-    flex: 1,
-    marginTop: Metrix.VerticalSize(10),
-    width: '100%',
+  imagePickerText: {
+    fontFamily: fonts.Regular,
     fontSize: Metrix.customFontSize(12),
-    padding: Metrix.customFontSize(12),
-    paddingLeft: Metrix.HorizontalSize(10),
-    color: Colors.black,
-    borderRadius: 10,
-    backgroundColor: Colors.textFiledBG,
-    borderWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    color: Colors.darkGray,
   },
-  dropdownList: {
-    marginTop: Metrix.VerticalSize(10),
-    width: '100%',
-    fontSize: Metrix.customFontSize(10),
-    padding: Metrix.customFontSize(4),
-    paddingLeft: Metrix.HorizontalSize(0),
-    color: Colors.black,
-    borderRadius: 10,
-    borderWidth: 0,
-    backgroundColor: Colors.textFiledBG,
-
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  modalStyle: {
-    backgroundColor: Colors.white,
-  },
-  modalTitleContainer: {
-    marginVertical: Metrix.VerticalSize(16),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  modalBtnContainer: {
-    marginTop: Metrix.VerticalSize(10),
-    marginBottom: Metrix.VerticalSize(20),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  imagePickerThumb: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
 });

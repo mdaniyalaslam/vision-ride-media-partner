@@ -2,255 +2,126 @@ import {
   View,
   Text,
   StyleSheet,
-  Platform,
-  Alert,
-  Share,
-  Image,
-} from 'react-native';
-import React from 'react';
-import { Colors, Metrix, NavigationService } from '../../config';
-import TextComponent from '../../components/TextComponent';
-import Button from '../../components/Button';
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import React, { useState } from "react";
+import { Colors, Metrix, NavigationService } from "../../config";
+import { Button, Header, Tag } from "../../components";
+import { fonts } from "../../config/Constants";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
-import Tag from '../../components/Tag';
-import { priceFormatter } from '../../config/Constants';
-import { HomeMiddleware } from '../../redux/Middlewares';
-import { useDispatch, useSelector } from 'react-redux';
-import Toast from 'react-native-toast-message';
-import RNBlobUtil from 'react-native-blob-util';
-import { Header } from '../../components';
-import { imageBaseUrl } from '../../config/ApiCaller';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+// ─── Shared row component ────────────────────────────────────────────────────
 
-// import Share from 'react-native-share';
+const InfoRow = ({ label, value, isLast = false }) => (
+  <View style={[styles.infoRow, !isLast && styles.infoRowBorder]}>
+    <Text style={styles.infoLabel}>{label}</Text>
+    <Text style={styles.infoValue}>{value ?? "—"}</Text>
+  </View>
+);
 
-const formatDate = dateString => {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+// ─── Collapsible section ─────────────────────────────────────────────────────
+
+const Section = ({ title, children, defaultOpen = true }) => {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <View style={styles.sectionWrapper}>
+      <TouchableOpacity
+        style={styles.sectionHeader}
+        onPress={() => setOpen((prev) => !prev)}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.sectionTitle}>{title}</Text>
+        <Ionicons
+          name={open ? "chevron-up" : "chevron-down"}
+          size={Metrix.customFontSize(20)}
+          color={Colors.primary}
+        />
+      </TouchableOpacity>
+
+      {open && <View style={styles.card}>{children}</View>}
+    </View>
+  );
 };
 
-const formatAmount = amount => {
-  return priceFormatter(amount);
-};
+// ─── Screen ──────────────────────────────────────────────────────────────────
 
 const OrderDetails = ({ route }) => {
-  const { item } = route?.params;
-  console.log('item', item);
+  const order = route?.params?.order ?? {};
+  const vehicle = order?.vehicle ?? {};
 
-  const { user } = useSelector(state => state.AuthReducer);
-  const dispatch = useDispatch();
+  const status = order?.status ?? "Active";
+  const orderId = order?.orderId ?? "";
+  const orderDate = order?.orderDate ?? "";
+  const corporateAdvertiser = order?.corporateAdvertiser ?? "";
+  const monthlyAmount = order?.monthlyAmount ?? "";
 
-  const downloadPDF = async base64PDF => {
-    try {
-      // Define file path based on the platform
-      const filePath =
-        Platform.OS === 'android'
-          ? `${RNBlobUtil.fs.dirs.DownloadDir}/AuctionInvoice.pdf`
-          : `${RNBlobUtil.fs.dirs.DocumentDir}/AuctionInvoice.pdf`;
+  const make = vehicle?.make ?? "";
+  const model = vehicle?.model ?? "";
+  const modelCode = vehicle?.modelCode ?? "";
+  const type = vehicle?.type ?? "";
+  const year = vehicle?.year ?? "";
+  const registrationNumber = vehicle?.registrationNumber ?? "";
+  const avgMonthlyMileage = vehicle?.avgMonthlyMileage ?? "";
 
-      // Write the Base64 string to a file
-      await RNBlobUtil.fs.writeFile(filePath, base64PDF, 'base64');
-
-      if (Platform.OS === 'android') {
-        // For Android, open the file directly
-        await RNBlobUtil.android.actionViewIntent(filePath, 'application/pdf');
-        Alert.alert('Success', 'PDF saved to Downloads folder.');
-      } else {
-        // For iOS, show the save-to-file bottom sheet
-        await Share.share({
-          url: `file://${filePath}`,
-          title: 'Save PDF',
-        });
-      }
-    } catch (error) {
-      console.error('Error downloading the PDF:', error);
-      Alert.alert('Error', 'Failed to download the PDF.');
-    }
-  };
-
-  const downloadInvoice = () => {
-    dispatch(
-      HomeMiddleware.DownloadInvoice(user?.token, item?.invoice_id || item?.id),
-    )
-      .then(res => {
-        console.log('DOWNLOAD RES', res);
-        if (res?.data?.pdf_base64) {
-          downloadPDF(res?.data?.pdf_base64);
-        } else {
-          Alert.alert('Error', 'Invalid PDF data received.');
-        }
-      })
-      .catch(error => {
-        console.error('Error downloading invoice:', error);
-        Alert.alert('Error', 'Failed to download the invoice.');
-      });
-  };
-
-  const processPayment = () => {
-    dispatch(HomeMiddleware.ProcessPayment(user?.token, item?.id)).then(res => {
-      console.log('PAY NOW RES', res);
-      Toast.show(Toast.success('Payment processed successfully!'));
-      NavigationService.resetStack('UserStack');
-    });
-  };
   return (
     <>
-      <Header title={'Order Details'} />
-      <Image
-        source={{ uri: imageBaseUrl + item?.product?.thumbnail }}
-        style={styles.itemImage}
-      />
-      <TextComponent
-        text="Order Information"
-        customStyles={styles.title}
-        isSubTitle
-      />
-      <View style={styles.card}>
-        {/* Status Tag */}
-        <View style={styles.tagContainer}>
-          <Tag
-            text={
-              item?.status?.toUpperCase() ||
-              item?.payment_status?.toUpperCase() ||
-              'N/A'
-            }
-            id={
-              item?.payment_status == 'pending' ||
-              item?.payment_status == 'unpaid'
-                ? 1
-                : item?.payment_status == 'paid'
-                ? 2
-                : 3
-            }
-          />
-        </View>
+      <Header backIcon={true} title="Order Details" notificationIcon={false} />
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Order Information ── */}
+        <Section title="Order Information">
+          {/* Status badge row */}
+          <View style={[styles.infoRow, styles.infoRowBorder]}>
+            <Text style={styles.infoLabel}>Status</Text>
+            <Tag
+              text={status}
+              id={
+                status?.toLowerCase() === "active"
+                  ? 2
+                  : status?.toLowerCase() === "pending"
+                  ? 1
+                  : 3
+              }
+            />
+          </View>
 
-        <View style={styles.row}>
-          <TextComponent
-            text="Order# "
-            customStyles={styles.label}
-            isSubTitle
+          <InfoRow label="Order ID" value={orderId} />
+          <InfoRow label="Order Date" value={orderDate} />
+          <InfoRow label="Corporate Advertiser" value={corporateAdvertiser} />
+          <InfoRow
+            label="Monthly Amount"
+            value={monthlyAmount ? `$${monthlyAmount}` : "—"}
+            isLast
           />
-          <TextComponent text={item?.invoice_number || item?.order_number} />
-        </View>
+        </Section>
 
-        <View style={styles.row}>
-          <TextComponent text="Item: " customStyles={styles.label} isSubTitle />
-          <TextComponent
-            customStyles={{
-              width: Metrix.HorizontalSize(140),
-            }}
-            text={item?.product?.title + item?.product?.title}
-            numberOfLines={1}
-            ellipsizeMode="tail"
+        {/* ── Vehicle Information ── */}
+        <Section title="Vehicle Information">
+          <InfoRow label="Make" value={make} />
+          <InfoRow label="Model" value={model} />
+          <InfoRow label="Model code" value={modelCode} />
+          <InfoRow label="Type" value={type} />
+          <InfoRow label="Year" value={year} />
+          <InfoRow label="Registration Number" value={registrationNumber} />
+          <InfoRow
+            label="Avg. Monthly Mileage"
+            value={avgMonthlyMileage ? `${avgMonthlyMileage} km` : "—"}
+            isLast
           />
-        </View>
+        </Section>
 
-        <View style={styles.row}>
-          <TextComponent
-            text="Order Date:"
-            customStyles={styles.label}
-            isSubTitle
-          />
-          <TextComponent text={formatDate(item?.created_at)} />
-        </View>
-        <View style={styles.row}>
-          <TextComponent
-            text="Payment Method:"
-            customStyles={styles.label}
-            isSubTitle
-          />
-          <TextComponent text={item?.payment_method} />
-        </View>
-        <View style={styles.row}>
-          <TextComponent
-            text="Transaction ID:"
-            customStyles={styles.label}
-            isSubTitle
-          />
-          <TextComponent text={item?.transaction_id} />
-        </View>
-        <View
-          style={{
-            backgroundColor: Colors.primaryLight,
-            padding: 4,
+        <Button
+          title="View Monthly Mileage"
+          onPress={() => {
+            NavigationService.navigate("MonthlyMileage");
           }}
-        >
-          <View style={{ ...styles.rowSpaceBetween, marginTop: 10 }}>
-            <TextComponent
-              text="Winning Bid: "
-              customStyles={styles.label}
-              isSubTitle
-            />
-            <TextComponent isSubTitle text={formatAmount(item?.amount)} />
-          </View>
-          <View style={styles.rowSpaceBetween}>
-            <TextComponent
-              text="Tax: "
-              customStyles={styles.label}
-              isSubTitle
-            />
-            <TextComponent isSubTitle text={formatAmount(item?.tax)} />
-          </View>
-
-          <View style={styles.rowSpaceBetween}>
-            <TextComponent
-              text="Total Amount: "
-              customStyles={styles.label}
-              isSubTitle
-            />
-            <TextComponent isSubTitle text={formatAmount(item?.total_amount)} />
-          </View>
-        </View>
-      </View>
-      <TextComponent
-        text="Order Timeline"
-        customStyles={styles.title}
-        isSubTitle
-      />
-      <View style={styles.card}>
-        <View style={{ ...styles.row }}>
-          <Ionicons name="radio-button-on" size={20} color={Colors.primary} />
-          <View style={{ marginLeft: 10 }}>
-            <TextComponent
-              isSubTitle
-              text={'Order Placed'}
-              customStyles={{ marginBottom: 5 }}
-            />
-            <TextComponent text={formatDate(item?.created_at)} />
-          </View>
-        </View>
-        <View
-          style={{
-            height: 40,
-            width: 0.5,
-            backgroundColor: Colors.black,
-            marginLeft: 10,
-            marginTop: -5,
-          }}
+          buttonStyle={styles.viewBtn}
         />
-        <View style={{ ...styles.row }}>
-          <Ionicons name="radio-button-on" size={20} color={Colors.primary} />
-          <View style={{ marginLeft: 10 }}>
-            <TextComponent
-              isSubTitle
-              text={'Payment Received'}
-              customStyles={{ marginBottom: 5 }}
-            />
-            <TextComponent text={formatDate(item?.created_at)} />
-          </View>
-        </View>
-      </View>
-      <Button
-        title="Download Invoice"
-        buttonStyle={{ margin: 6 }}
-        onPress={downloadInvoice}
-      />
+      </ScrollView>
     </>
   );
 };
@@ -258,39 +129,74 @@ const OrderDetails = ({ route }) => {
 export default OrderDetails;
 
 const styles = StyleSheet.create({
-  card: {
-    margin: 5,
-    borderRadius: 8,
-    padding: 10,
-    borderColor: Colors.primary,
-    borderWidth: 0.5,
-    backgroundColor: Colors.white,
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
   },
-  tagContainer: {
-    position: 'absolute',
-    right: 10,
-    top: 10,
+  contentContainer: {
+    padding: Metrix.HorizontalSize(16),
+    paddingBottom: Metrix.VerticalSize(40),
   },
-  row: {
-    flexDirection: 'row',
-    marginBottom: 6,
-    alignItems: 'center',
-  },
-  rowSpaceBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-    alignItems: 'center',
-  },
-  label: {
-    width: Metrix.HorizontalSize(100),
-  },
-  title: { margin: 5, color: Colors.primary, fontSize: 14 },
 
-  itemImage: {
-    width: '98%',
-    height: Metrix.VerticalSize(200),
-    borderRadius: 20,
-    margin: 5,
+  // ── Section ──
+  sectionWrapper: {
+    marginBottom: Metrix.VerticalSize(16),
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: Metrix.VerticalSize(6),
+    marginBottom: Metrix.VerticalSize(8),
+  },
+  sectionTitle: {
+    fontFamily: fonts.Bold,
+    fontSize: Metrix.customFontSize(16),
+    color: Colors.primary,
+  },
+
+  // ── Card ──
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    paddingHorizontal: Metrix.HorizontalSize(16),
+    elevation: 2,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+  },
+
+  // ── Row ──
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: Metrix.VerticalSize(14),
+  },
+  infoRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.backgroundGray,
+  },
+  infoLabel: {
+    fontFamily: fonts.Regular,
+    fontSize: Metrix.customFontSize(13),
+    color: Colors.textColor,
+    flex: 1,
+  },
+  infoValue: {
+    fontFamily: fonts.Bold,
+    fontSize: Metrix.customFontSize(13),
+    color: Colors.primary,
+    flex: 1,
+    textAlign: "right",
+  },
+
+  // ── Button ──
+  viewBtn: {
+    width: "100%",
+    height: Metrix.VerticalSize(52),
+    borderRadius: 10,
+    marginTop: Metrix.VerticalSize(8),
   },
 });
