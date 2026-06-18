@@ -1,123 +1,102 @@
-import { Alert, View, Text, StyleSheet, ScrollView } from "react-native";
-import React, { useCallback, useEffect, useState } from "react";
-import { Colors, Metrix } from "../../config";
-import {
-  BankAccountCard,
-  Button,
-  Header,
-  TextComponent,
-} from "../../components";
-import { fonts } from "../../config/Constants";
-import { useDispatch, useSelector } from "react-redux";
-import { HomeMiddleware } from "../../redux/Middlewares";
+import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import React, {useState} from 'react';
+import {Colors, Metrix} from '../../config';
+import {Button, Header, TextField} from '../../components';
+import {fonts, ToastError, ToastSuccess} from '../../config/Constants';
+import Toast from 'react-native-toast-message';
+import {useDispatch, useSelector} from 'react-redux';
+import {AuthMiddleware} from '../../redux/Middlewares';
 
 const BankAccounts = () => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.AuthReducer);
-  const [accounts, setAccounts] = useState([]);
+  const {user} = useSelector(state => state.AuthReducer);
 
-  useEffect(() => {
-    getAccounts();
-  }, []);
+  const [accountName, setAccountName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [routingNumber, setRoutingNumber] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [bankAddress, setBankAddress] = useState('');
 
-  const addCard = (nonce) => {
-    let body = {
-      card_nonce: nonce,
-      cardholder_name: user?.first_name + " " + user?.last_name,
-      address_line_1: "",
-      postal_code: "",
-      country: "",
+  const handleSave = () => {
+    if (!accountName.trim()) {
+      return Toast.show(ToastError('Please enter account holder name.'));
+    }
+    if (!accountNumber.trim()) {
+      return Toast.show(ToastError('Please enter account number.'));
+    }
+    if (!routingNumber.trim()) {
+      return Toast.show(ToastError('Please enter routing number.'));
+    }
+    if (!bankName.trim()) {
+      return Toast.show(ToastError('Please enter bank name.'));
+    }
+
+    const body = {
+      account_name: accountName,
+      account_number: accountNumber,
+      routing_number: routingNumber,
+      bank_name: bankName,
+      bank_address: bankAddress,
     };
-    dispatch(HomeMiddleware.AddCard(user?.token, body)).then((res) => {
-      console.log("add card res::", res);
-      if (res?.statusCode === 200) {
-        getAccounts();
-      } else {
-        Alert.alert("Error", "Failed to add card. Please try again.");
-      }
-    });
-  };
 
-  const getAccounts = () => {
-    dispatch(HomeMiddleware.GetBankAccounts(user?.token)).then((res) => {
-      console.log("ACCOUNTS", res);
-      setAccounts(res?.data);
-    });
-  };
-
-  const handleSetDefault = (id) => {
-    // return;
-    setAccounts((prev) =>
-      prev.map((account) => ({
-        ...account,
-        is_default: account.id === id,
-      })),
-    );
-    dispatch(HomeMiddleware.SetDefaultCard(user?.token, id)).then((res) => {
-      console.log("Set default card response:", res);
-    });
-  };
-
-  const handleUpdate = (id) => {
-    const account = accounts.find((item) => item.id === id);
-    Alert.alert("Update Bank Account", `Edit details for ${account?.last_4}`);
-  };
-
-  const handleDelete = (id) => {
-    // const account = accounts.find(item => item.id === id);
-    Alert.alert("Delete Payment Method", `Are you sure you want to delete ?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () =>
-          // setAccounts(prev => prev.filter(account => account.id !== id)),
-          dispatch(HomeMiddleware.DeleteCard(user?.token, id)).then((res) => {
-            console.log("Delete card response:", res);
-            setAccounts((prev) => prev.filter((account) => account.id !== id));
-            getAccounts();
-          }),
-      },
-    ]);
-  };
-
-  const handleMenuPress = (account) => {
-    Alert.alert("Actions", "Choose an option", [
-      { text: "Update", onPress: () => handleUpdate(account.id) },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => handleDelete(account.id),
-      },
-      { text: "Cancel", style: "cancel" },
-    ]);
+    dispatch(AuthMiddleware.UpdateBankDetails(user?.token, body))
+      .then(res => {
+        console.log('UpdateBankDetails Success:', res);
+        Toast.show(ToastSuccess('Bank details saved successfully.'));
+      })
+      .catch(err => console.warn('UpdateBankDetails Error:', err));
   };
 
   return (
     <ScrollView style={styles.container} bounces={false}>
-      <View>
-        <Header title={"Payment Methods"} />
-        {accounts.length === 0 ? (
-          <View style={{ marginTop: 50, alignItems: "center" }}>
-            <TextComponent text="No payment methods available." isSubTitle />
-          </View>
-        ) : (
-          accounts.map((account) => (
-            <BankAccountCard
-              key={account.id}
-              account={account}
-              onSetDefault={() => handleSetDefault(account.id)}
-              onPressDelete={() => handleDelete(account?.id)}
-            />
-          ))
-        )}
-        {accounts.length < 2 && (
-          <Button
-            onPress={startPaymentFlow}
-            buttonStyle={{ margin: 10 }}
-            title="Add Payment Method"
-          />
-        )}
+      <Header title={'Bank Account'} />
+
+      <View style={styles.form}>
+        <Text style={styles.sectionTitle}>Payment Details</Text>
+        <Text style={styles.sectionDesc}>
+          Add your bank account details to receive payments from campaigns.
+        </Text>
+
+        <TextField
+          label="Account Holder Name*"
+          value={accountName}
+          onChangeText={setAccountName}
+          placeholder="e.g., John Smith"
+        />
+        <TextField
+          label="Account Number*"
+          value={accountNumber}
+          onChangeText={setAccountNumber}
+          keyboardType="number-pad"
+          placeholder="e.g., 1234567890"
+        />
+        <TextField
+          label="Routing Number*"
+          value={routingNumber}
+          onChangeText={setRoutingNumber}
+          keyboardType="number-pad"
+          placeholder="e.g., 021000021"
+        />
+        <TextField
+          label="Bank Name*"
+          value={bankName}
+          onChangeText={setBankName}
+          placeholder="e.g., Chase Bank"
+        />
+        <TextField
+          label="Bank Address"
+          value={bankAddress}
+          onChangeText={setBankAddress}
+          placeholder="e.g., 123 Bank St, New York, NY"
+          multiline
+          inputContainerStyle={{height: 80}}
+        />
+
+        <Button
+          title="Save Bank Details"
+          onPress={handleSave}
+          buttonStyle={{marginTop: Metrix.VerticalSize(20), marginBottom: 40}}
+        />
       </View>
     </ScrollView>
   );
@@ -130,17 +109,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  title: {
-    fontFamily: fonts.Bold,
-    fontSize: Metrix.customFontSize(16),
-    marginTop: Metrix.VerticalSize(40),
-
-    color: Colors.primary,
+  form: {
+    paddingHorizontal: Metrix.HorizontalSize(20),
+    paddingTop: Metrix.VerticalSize(10),
   },
-  description: {
+  sectionTitle: {
+    fontFamily: fonts.Bold,
+    fontSize: Metrix.customFontSize(18),
+    color: Colors.primary,
+    marginTop: Metrix.VerticalSize(10),
+  },
+  sectionDesc: {
     fontFamily: fonts.Regular,
-    fontSize: Metrix.customFontSize(12),
+    fontSize: Metrix.customFontSize(13),
     color: Colors.textColor,
-    marginTop: Metrix.VerticalSize(13),
+    marginTop: Metrix.VerticalSize(6),
+    marginBottom: Metrix.VerticalSize(10),
   },
 });

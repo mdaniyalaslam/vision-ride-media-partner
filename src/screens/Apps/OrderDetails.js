@@ -11,7 +11,27 @@ import { Button, Header, Tag } from "../../components";
 import { fonts } from "../../config/Constants";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
-// ─── Shared row component ────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const monthYear = (d) => {
+  if (!d) return "";
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return "";
+  return dt.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+};
+
+const formatDate = (d) => {
+  if (!d) return "—";
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return String(d);
+  return dt.toLocaleDateString("en-US", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+// ─── Shared rows ─────────────────────────────────────────────────────────────
 
 const InfoRow = ({ label, value, isLast = false }) => (
   <View style={[styles.infoRow, !isLast && styles.infoRowBorder]}>
@@ -19,8 +39,6 @@ const InfoRow = ({ label, value, isLast = false }) => (
     <Text style={styles.infoValue}>{value ?? "—"}</Text>
   </View>
 );
-
-// ─── Collapsible section ─────────────────────────────────────────────────────
 
 const Section = ({ title, children, defaultOpen = true }) => {
   const [open, setOpen] = useState(defaultOpen);
@@ -38,7 +56,6 @@ const Section = ({ title, children, defaultOpen = true }) => {
           color={Colors.primary}
         />
       </TouchableOpacity>
-
       {open && <View style={styles.card}>{children}</View>}
     </View>
   );
@@ -47,22 +64,27 @@ const Section = ({ title, children, defaultOpen = true }) => {
 // ─── Screen ──────────────────────────────────────────────────────────────────
 
 const OrderDetails = ({ route }) => {
-  const order = route?.params?.order ?? {};
-  const vehicle = order?.vehicle ?? {};
+  const item = route?.params?.order ?? {};
+  const vehicle = item?.vehicle ?? {};
+  const campaign = item?.campaign ?? {};
+  const advertiser = campaign?.advertiser ?? {};
 
-  const status = order?.status ?? "Active";
-  const orderId = order?.orderId ?? "";
-  const orderDate = order?.orderDate ?? "";
-  const corporateAdvertiser = order?.corporateAdvertiser ?? "";
-  const monthlyAmount = order?.monthlyAmount ?? "";
+  const orders = Array.isArray(item?.orders) ? item.orders : [];
+  const order = orders[orders.length - 1] ?? null;
+  const hasOrder = !!order;
 
-  const make = vehicle?.make ?? "";
-  const model = vehicle?.model ?? "";
-  const modelCode = vehicle?.modelCode ?? "";
-  const type = vehicle?.type ?? "";
-  const year = vehicle?.year ?? "";
-  const registrationNumber = vehicle?.registrationNumber ?? "";
-  const avgMonthlyMileage = vehicle?.avgMonthlyMileage ?? "";
+  const orderNumber = order?.order_number ?? String(item?.id ?? "—");
+  const period = monthYear(order?.order_date ?? item?.created_at);
+  const reportState = hasOrder ? "Submitted" : "Pending";
+  const overallStatus = hasOrder ? "Active" : "Pending";
+  const reportsCount = item?.orders_count ?? orders.length;
+
+  const vehicleName =
+    `${vehicle?.make ?? ""} ${vehicle?.model ?? ""}`.trim() || "—";
+
+  const handleAddReport = () => {
+    NavigationService.navigate("AddMonthlyMileage", { orderId: item?.id });
+  };
 
   return (
     <>
@@ -72,55 +94,116 @@ const OrderDetails = ({ route }) => {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Order Information ── */}
+        {/* ── Order ── */}
         <Section title="Order Information">
-          {/* Status badge row */}
           <View style={[styles.infoRow, styles.infoRowBorder]}>
             <Text style={styles.infoLabel}>Status</Text>
-            <Tag
-              text={status}
-              id={
-                status?.toLowerCase() === "active"
-                  ? 2
-                  : status?.toLowerCase() === "pending"
-                  ? 1
-                  : 3
-              }
-            />
+            <Tag text={overallStatus} id={hasOrder ? 2 : 1} />
           </View>
-
-          <InfoRow label="Order ID" value={orderId} />
-          <InfoRow label="Order Date" value={orderDate} />
-          <InfoRow label="Corporate Advertiser" value={corporateAdvertiser} />
+          <InfoRow label="Order Number" value={orderNumber} />
+          <InfoRow
+            label="Order Date"
+            value={order?.order_date ? formatDate(order.order_date) : "N/A"}
+          />
           <InfoRow
             label="Monthly Amount"
-            value={monthlyAmount ? `$${monthlyAmount}` : "—"}
+            value={
+              order?.monthly_original_price
+                ? `$${order.monthly_original_price}`
+                : "—"
+            }
             isLast
           />
         </Section>
 
-        {/* ── Vehicle Information ── */}
-        <Section title="Vehicle Information">
-          <InfoRow label="Make" value={make} />
-          <InfoRow label="Model" value={model} />
-          <InfoRow label="Model code" value={modelCode} />
-          <InfoRow label="Type" value={type} />
-          <InfoRow label="Year" value={year} />
-          <InfoRow label="Registration Number" value={registrationNumber} />
+        {/* ── Campaign ── */}
+        <Section title="Campaign">
+          <InfoRow label="City" value={campaign?.city} />
           <InfoRow
-            label="Avg. Monthly Mileage"
-            value={avgMonthlyMileage ? `${avgMonthlyMileage} km` : "—"}
+            label="Duration"
+            value={
+              campaign?.campaign_length
+                ? `${campaign.campaign_length} months`
+                : "—"
+            }
+          />
+          <InfoRow
+            label="Started"
+            value={
+              campaign?.created_at ? formatDate(campaign.created_at) : "—"
+            }
             isLast
           />
         </Section>
 
-        <Button
-          title="View Monthly Mileage"
-          onPress={() => {
-            NavigationService.navigate("MonthlyMileage");
-          }}
-          buttonStyle={styles.viewBtn}
-        />
+        {/* ── Vehicle ── */}
+        <Section title="Vehicle">
+          <InfoRow label="Vehicle" value={vehicleName} />
+          <InfoRow
+            label="Registration"
+            value={vehicle?.registration_number}
+          />
+          <InfoRow label="VIN" value={vehicle?.vin} />
+          <InfoRow label="Year" value={vehicle?.year} isLast />
+        </Section>
+
+        {/* ── Advertiser ── */}
+        <Section title="Advertiser">
+          <InfoRow
+            label="Company"
+            value={advertiser?.company_name}
+            isLast
+          />
+        </Section>
+
+        {/* ── Monthly Reports ── */}
+        <Section title="Monthly Reports">
+          <View style={[styles.infoRow, styles.infoRowBorder]}>
+            <Text style={styles.infoLabel}>This Month</Text>
+            <View style={styles.reportState}>
+              <Ionicons
+                name={hasOrder ? "checkmark-circle" : "time-outline"}
+                size={Metrix.customFontSize(16)}
+                color={hasOrder ? Colors.greenDark : Colors.pending}
+              />
+              <Text style={styles.reportStateText}>
+                {`${reportState}${period ? ` for ${period}` : ""}`}
+              </Text>
+            </View>
+          </View>
+          <InfoRow
+            label="Total Reports"
+            value={`${reportsCount} ${reportsCount === 1 ? "report" : "reports"}`}
+            isLast
+          />
+        </Section>
+
+        {/* ── Action ── */}
+        {hasOrder ? (
+          <View style={styles.submittedBtn}>
+            <Ionicons
+              name="checkmark-done"
+              size={Metrix.customFontSize(18)}
+              color={Colors.white}
+              style={{ marginRight: 6 }}
+            />
+            <Text style={styles.submittedText}>Already Submitted</Text>
+          </View>
+        ) : (
+          <Button
+            title="Add Monthly Mileage & Images"
+            onPress={handleAddReport}
+            buttonStyle={styles.actionBtn}
+            preIcon={
+              <Ionicons
+                name="add"
+                size={Metrix.customFontSize(20)}
+                color={Colors.white}
+                style={{ marginRight: 6 }}
+              />
+            }
+          />
+        )}
       </ScrollView>
     </>
   );
@@ -137,8 +220,6 @@ const styles = StyleSheet.create({
     padding: Metrix.HorizontalSize(16),
     paddingBottom: Metrix.VerticalSize(40),
   },
-
-  // ── Section ──
   sectionWrapper: {
     marginBottom: Metrix.VerticalSize(16),
   },
@@ -154,8 +235,6 @@ const styles = StyleSheet.create({
     fontSize: Metrix.customFontSize(16),
     color: Colors.primary,
   },
-
-  // ── Card ──
   card: {
     backgroundColor: Colors.white,
     borderRadius: 12,
@@ -166,8 +245,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 4,
   },
-
-  // ── Row ──
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -191,12 +268,35 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "right",
   },
-
-  // ── Button ──
-  viewBtn: {
+  reportState: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  reportStateText: {
+    fontFamily: fonts.SemiBold,
+    fontSize: Metrix.customFontSize(12),
+    color: Colors.textColor,
+  },
+  actionBtn: {
     width: "100%",
     height: Metrix.VerticalSize(52),
     borderRadius: 10,
     marginTop: Metrix.VerticalSize(8),
+  },
+  submittedBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    height: Metrix.VerticalSize(52),
+    borderRadius: 10,
+    marginTop: Metrix.VerticalSize(8),
+    backgroundColor: Colors.greenDark,
+  },
+  submittedText: {
+    fontFamily: fonts.Bold,
+    fontSize: Metrix.customFontSize(14),
+    color: Colors.white,
   },
 });

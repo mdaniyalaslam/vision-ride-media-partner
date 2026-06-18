@@ -43,13 +43,13 @@ const ChangePassword = () => {
       Toast.show(ToastError('New password and confirm password do not match'));
       return;
     }
-    let body = {
+    const body = {
       current_password: oldPassword,
-      password: newPassword,
-      password_confirmation: confirmPassword,
+      new_password: newPassword,
+      new_password_confirmation: confirmPassword,
     };
     dispatch(AuthMiddleware.ChangePassword(user?.token, body)).then(res => {
-      console.log('CHANGE PASSWORD RES', res);
+      console.log('ChangePassword Response:', res);
       NavigationService.goBack();
     });
   };

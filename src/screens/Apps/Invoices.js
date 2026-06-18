@@ -1,121 +1,88 @@
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Colors, Metrix } from '../../config';
-import { Button, Header, OrderInvoiceComponent } from '../../components';
-import { useDispatch, useSelector } from 'react-redux';
-import { HomeMiddleware } from '../../redux/Middlewares';
+import {View, Text, StyleSheet, FlatList, RefreshControl} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {Colors, Metrix} from '../../config';
+import {Header, PaymentItemComponent} from '../../components';
+import {useDispatch, useSelector} from 'react-redux';
+import {HomeMiddleware} from '../../redux/Middlewares';
 
-const FILTERS = [
-  { label: 'All', value: 'all' },
-  { label: 'Paid', value: 'paid' },
-  { label: 'Unpaid', value: 'unpaid' },
-  // { label: 'Expired', value: 'expired' },
-];
-
-const PER_PAGE = 15;
+const PER_PAGE = 20;
 
 const Invoices = () => {
-  const { user } = useSelector(state => state.AuthReducer);
+  const {user} = useSelector(state => state.AuthReducer);
   const dispatch = useDispatch();
 
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [invoices, setInvoices] = useState([]);
-  const [pagination, setPagination] = useState({
-    total: 0,
-    current_page: 1,
-    last_page: 1,
-  });
+  const [payments, setPayments] = useState([]);
+  const [stats, setStats] = useState({});
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchPayments = useCallback(async (reset = false) => {
+    try {
+      const res = await dispatch(
+        HomeMiddleware.GetPayments(user?.token, PER_PAGE),
+      );
+      console.log('GetPayments Response:', res?.data);
+      const list = res?.data?.payments ?? res?.data ?? [];
+      const summary = res?.data?.stats ?? res?.data?.summary ?? {};
+      setPayments(reset ? list : list);
+      setStats(summary);
+    } catch (error) {
+      console.warn('GetPayments Error:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [user?.token]);
 
   useEffect(() => {
-    fetchInvoices(1, true);
-  }, [activeFilter]);
+    fetchPayments(true);
+  }, [fetchPayments]);
 
-  const fetchInvoices = useCallback(
-    async (page = 1, reset = false) => {
-      try {
-        const params = new URLSearchParams({
-          filter: activeFilter,
-          per_page: PER_PAGE,
-          page,
-        }).toString();
-
-        const response = await dispatch(
-          HomeMiddleware.GetInvoices(user.token, params),
-        );
-        console.log('INVOICES', response);
-
-        const newInvoices = response?.data ?? [];
-        const newPagination = {
-          total: response?.total ?? 0,
-          current_page: response?.current_page ?? 1,
-          last_page: response?.last_page ?? 1,
-        };
-
-        setInvoices(prev => (reset ? newInvoices : [...prev, ...newInvoices]));
-        setPagination(newPagination);
-      } catch (error) {
-        console.error('Failed to fetch invoices:', error);
-      }
-    },
-    [activeFilter],
-  );
-
-  // ─── Infinite scroll ──────────────────────────────────────────────────────
-  const handleLoadMore = () => {
-    const { current_page, last_page } = pagination;
-    if (current_page < last_page) {
-      fetchInvoices(current_page + 1, false);
-    }
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchPayments(true);
   };
-
-  // ─── Filter press ─────────────────────────────────────────────────────────
-  const handleFilterPress = filter => {
-    if (filter === activeFilter) return;
-    setActiveFilter(filter);
-  };
-
-  const { total } = pagination;
 
   return (
     <View style={styles.container}>
-      <Header title={'Invoices'} />
+      <Header title={'Payments'} />
 
-      {/* Filter tabs */}
-      <View style={styles.row}>
-        {FILTERS.map(filter => (
-          <Button
-            key={filter.value}
-            title={
-              filter.label
-              // filter.value === activeFilter
-              //   ? `${filter.label} (${total})`
-              //   : filter.label
-            }
-            onPress={() => handleFilterPress(filter.value)}
-            buttonStyle={styles.tabButton}
-            isOutline={activeFilter !== filter.value}
-          />
-        ))}
-      </View>
+      {/* Summary card */}
+      {Object.keys(stats).length > 0 && (
+        <View style={styles.statsCard}>
+          {stats.total_payments !== undefined && (
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{stats.total_payments ?? 0}</Text>
+              <Text style={styles.statLabel}>Total Payments</Text>
+            </View>
+          )}
+          {stats.total_amount !== undefined && (
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>${stats.total_amount ?? 0}</Text>
+              <Text style={styles.statLabel}>Total Earned</Text>
+            </View>
+          )}
+        </View>
+      )}
 
-      {/* List */}
       <FlatList
-        data={invoices}
+        data={payments}
         style={styles.list}
         keyExtractor={item => String(item.id)}
         showsVerticalScrollIndicator={false}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.4}
-        renderItem={({ item, index }) => (
-          <OrderInvoiceComponent item={item} index={index} />
-        )}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+          />
+        }
+        renderItem={({item}) => <PaymentItemComponent item={item} />}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No Data Found</Text>
+            <Text style={styles.emptyText}>No payments found.</Text>
           </View>
         )}
         ListFooterComponent={() => (
-          <View style={{ height: Metrix.HorizontalSize(120) }} />
+          <View style={{height: Metrix.HorizontalSize(120)}} />
         )}
       />
     </View>
@@ -129,25 +96,40 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  row: {
+  statsCard: {
     flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    paddingHorizontal: 10,
-    paddingTop: 12,
-    gap: 8,
+    justifyContent: 'space-around',
+    backgroundColor: Colors.white,
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 12,
+    paddingVertical: 16,
+    elevation: 2,
+    shadowColor: Colors.black,
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
   },
-  tabButton: {
-    height: 38,
-    paddingHorizontal: 12,
-    width: '31.7%',
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontFamily: 'Gilroy-Bold',
+    fontSize: Metrix.customFontSize(20),
+    color: Colors.primary,
+  },
+  statLabel: {
+    fontFamily: 'Gilroy-Regular',
+    fontSize: Metrix.customFontSize(12),
+    color: Colors.textColor,
+    marginTop: 4,
   },
   list: {
     flex: 1,
     padding: 6,
   },
   emptyContainer: {
-    height: 500,
+    height: 300,
     justifyContent: 'center',
     alignItems: 'center',
   },

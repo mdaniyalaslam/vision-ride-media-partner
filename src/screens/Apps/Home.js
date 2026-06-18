@@ -1,163 +1,76 @@
 import {
   View,
-  Text,
   StyleSheet,
   Image,
-  TouchableOpacity,
-  ImageBackground,
   FlatList,
-  ScrollView,
-} from "react-native";
-import React, { useEffect, useState } from "react";
-import { Colors, Images, Metrix, NavigationService } from "../../config";
-import { fonts } from "../../config/Constants";
-import {
-  Button,
-  HeroHeader,
-  HomeWidget,
-  TextComponent,
-} from "../../components";
-import useStyle from "../styles";
-import HomeItemComponent from "../../components/HomeItemComponent";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
-import Ionicons from "react-native-vector-icons/Ionicons";
-import Entypo from "react-native-vector-icons/Entypo";
-import { HomeMiddleware } from "../../redux/Middlewares";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigation } from "@react-navigation/native";
-import { AuthAction } from "../../redux/Actions";
+  RefreshControl,
+} from 'react-native';
+import React, {useEffect, useState, useCallback} from 'react';
+import {Colors, Images, Metrix} from '../../config';
+import {HeroHeader, TextComponent} from '../../components';
+import HomeItemComponent from '../../components/HomeItemComponent';
+import {HomeMiddleware} from '../../redux/Middlewares';
+import {useDispatch, useSelector} from 'react-redux';
+import {useNavigation} from '@react-navigation/native';
 
 const Home = () => {
-  const ALL = "all";
-  const WINNING = "winning";
-  const LOST = "lost";
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.AuthReducer);
-  const [filter, setfilter] = useState(ALL);
-  const [stats, setStats] = useState({});
-  const [bids, setBids] = useState([]);
+  const {user} = useSelector(state => state.AuthReducer);
   const navigation = useNavigation();
+  const [vehicles, setVehicles] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchVehicles = useCallback(() => {
+    dispatch(HomeMiddleware.GetVehicles(user?.token))
+      .then(res => {
+        console.log('Vehicles List:', res?.data);
+        setVehicles(res?.data ?? []);
+      })
+      .catch(err => console.warn('GetVehicles Error:', err))
+      .finally(() => setRefreshing(false));
+  }, [user?.token]);
 
   useEffect(() => {
-    // navigation.addListener('focus', () => {
-    //   getStats();
-    //   setfilter(ALL);
-    //   getNotificationsCount();
-    // });
-  }, []);
+    const unsubscribe = navigation.addListener('focus', fetchVehicles);
+    return unsubscribe;
+  }, [navigation, fetchVehicles]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchVehicles();
+  };
 
   return (
     <View style={styles.container}>
-      <View>
-        <HeroHeader />
-
-        {/* <View
-          style={{
-            marginTop: -40,
-            flexDirection: 'row',
-            justifyContent: 'center',
-          }}
-        >
-          <HomeWidget
-            text={'ACTIVE BIDS'}
-            count={stats?.active_bids || 0}
-            icon={() => (
-              <Ionicons name={'hammer'} color={Colors.primary} size={22} />
-            )}
+      <HeroHeader />
+      <FlatList
+        data={vehicles}
+        style={{flex: 1}}
+        keyExtractor={item => String(item.id)}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
           />
-          <HomeWidget
-            text={'WINNING BIDS'}
-            count={stats?.winning_bids || 0}
-            icon={() => (
-              <Ionicons
-                name={'trophy-sharp'}
-                color={Colors.primary}
-                size={22}
-              />
-            )}
-          />
-          <HomeWidget
-            text={'ACTIVE ORDERS'}
-            count={stats?.active_orders || 0}
-            icon={() => (
-              <Entypo
-                name={'text-document-inverted'}
-                color={Colors.primary}
-                size={22}
-              />
-            )}
-          />
-          <HomeWidget
-            text={'TOTAL SPENT'}
-            count={stats?.total_spent || 0}
-            icon={() => (
-              <Entypo name={'message'} color={Colors.primary} size={22} />
-            )}
-          />
-        </View> */}
-        {/* tabs */}
-        {/* <View style={{ ...styles.row }}>
-          <Button
-
-            title={`All`}
-            onPress={() => setfilter(ALL)}
-            buttonStyle={{
-              height: 38,
-              width: "25%",
-              marginHorizontal: 4,
-              marginTop: 12,
-            }}
-            isOutline={filter != ALL}
-          />
-          <Button
-
-            title={`Winning`}
-            onPress={() => setfilter(WINNING)}
-            buttonStyle={{
-              height: 38,
-              width: "36%",
-              marginHorizontal: 4,
-              marginTop: 12,
-            }}
-            isOutline={filter != WINNING}
-          />
-          <Button
-
-            title={`Lost`}
-            onPress={() => setfilter(LOST)}
-            buttonStyle={{
-              height: 38,
-              width: "33%",
-              marginHorizontal: 4,
-              marginTop: 12,
-            }}
-            isOutline={filter != LOST}
-          />
-        </View> */}
-        <FlatList
-          data={[1]}
-          style={{
-            height: Metrix.VerticalSize(440),
-          }}
-          ListEmptyComponent={() => (
-            <View style={{ margin: 25 }}>
-              <Image source={Images.car} style={styles.avatar} />
-
-              <TextComponent
-                customStyles={{ textAlign: "center" }}
-                text="Press the large “+” button below to add your first car.Once added, you’ll be able to advertise your car, display its details, and make it visible to potential buyers. This is the first step to publishing your car listing and reaching the right audience."
-              />
-            </View>
-          )}
-          ListFooterComponent={() => (
-            <View style={{ height: Metrix.HorizontalSize(120) }}></View>
-          )}
-          renderItem={({ item, index }) => {
-            return <HomeItemComponent item={item} index={index} />;
-          }}
-          keyExtractor={(item) => item.id}
-        />
-      </View>
+        }
+        ListEmptyComponent={() => (
+          <View style={styles.emptyContainer}>
+            <Image source={Images.car} style={styles.emptyImage} />
+            <TextComponent
+              customStyles={{textAlign: 'center', marginHorizontal: 20}}
+              text='Press the "+" button below to add your first vehicle. Once added, it will be visible to potential advertisers.'
+            />
+          </View>
+        )}
+        ListFooterComponent={() => (
+          <View style={{height: Metrix.HorizontalSize(120)}} />
+        )}
+        renderItem={({item, index}) => (
+          <HomeItemComponent item={item} index={index} />
+        )}
+      />
     </View>
   );
 };
@@ -169,63 +82,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-  },
-  button: {
-    flex: 1,
-    marginHorizontal: 2,
-  },
-
-  titleBig: {
-    fontSize: Metrix.customFontSize(32),
-    fontFamily: fonts.SemiBold,
-    color: Colors.white,
-    textAlign: "center",
-    marginHorizontal: Metrix.HorizontalSize(45),
+  emptyContainer: {
+    alignItems: 'center',
     marginTop: Metrix.VerticalSize(30),
   },
-  subTitle: {
-    // flex: 1,
-    fontFamily: fonts.Regular,
-    fontSize: Metrix.customFontSize(12),
-    marginHorizontal: Metrix.HorizontalSize(55),
-    color: Colors.background,
-    textAlign: "center",
-    marginTop: Metrix.VerticalSize(14),
-  },
-  tabIcon: {
-    width: Metrix.HorizontalSize(24),
-    height: Metrix.VerticalSize(24),
-    alignItems: "center",
-    tintColor: Colors.primary,
-  },
-  containerEmpty: {
-    width: "100%",
-    height: Metrix.VerticalSize(400),
-
-    // marginHorizontal: Metrix.HorizontalSize(25),
-    // backgroundColor: Colors.lightBlue,
-    borderRadius: Metrix.HorizontalSize(12),
-  },
-  logo: {
-    width: Metrix.HorizontalSize(300),
-    height: Metrix.VerticalSize(140),
-    alignSelf: "center",
-    marginTop: Metrix.VerticalSize(25),
-    // marginHorizontal: Metrix.HorizontalSize(15),
-  },
-  avatar: {
+  emptyImage: {
     width: 380,
-    resizeMode: "contain",
+    resizeMode: 'contain',
     height: 280,
-    alignSelf: "center",
-    marginTop: Metrix.VerticalSize(25),
-    // marginHorizontal: Metrix.HorizontalSize(15),
-    // height: 40,
-    // borderRadius: Metrix.HorizontalSize(100),
+    alignSelf: 'center',
   },
 });

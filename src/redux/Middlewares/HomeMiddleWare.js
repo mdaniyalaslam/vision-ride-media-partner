@@ -1,24 +1,168 @@
-import React, { Component } from 'react';
-import { Alert, Keyboard, Platform } from 'react-native';
+import React, {Component} from 'react';
 import Toast from 'react-native-toast-message';
 import ApiCaller from '../../config/ApiCaller';
-import { AuthAction, LoaderAction } from '../Actions';
+import {AuthAction, LoaderAction} from '../Actions';
 import endPoints from '../../config/EndPoints';
-import { ToastError, ToastSuccess } from '../../config/Constants';
+import {ToastError, ToastSuccess} from '../../config/Constants';
 
 export class HomeMiddleware extends Component {
-  static MarkMessagesRead(token, body) {
+  // ─── Vehicles ─────────────────────────────────────────────────────────────
+
+  static GetVehicles(token) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
-          let response = await ApiCaller.Post(
-            endPoints.markMessagesRead,
+          dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.Get(
+            endPoints.vehicles,
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('GetVehicles Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data);
+          } else {
+            dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
+          }
+        } catch (error) {
+          dispatch(LoaderAction.LoaderFalse());
+          reject(false);
+          Toast.show(ToastError(error.message));
+        }
+      });
+    };
+  }
+
+  static GetVehicle(token, id) {
+    return async dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.Get(
+            endPoints.vehicleById(id),
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('GetVehicle Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data);
+          } else {
+            dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
+          }
+        } catch (error) {
+          dispatch(LoaderAction.LoaderFalse());
+          reject(false);
+          Toast.show(ToastError(error.message));
+        }
+      });
+    };
+  }
+
+  static CreateVehicle(token, formData) {
+    return async dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.PostForm(
+            endPoints.vehicles,
+            formData,
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('CreateVehicle Response:', response?.data);
+          if (
+            response?.data?.statusCode == 201 ||
+            response?.data?.statusCode == 200
+          ) {
+            Toast.show(ToastSuccess(response?.data?.message));
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data);
+          } else {
+            dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
+          }
+        } catch (error) {
+          dispatch(LoaderAction.LoaderFalse());
+          reject(false);
+          Toast.show(ToastError(error.message));
+        }
+      });
+    };
+  }
+
+  static UpdateVehicle(token, id, body) {
+    return async dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.Put(
+            endPoints.vehicleById(id),
             body,
             ApiCaller.BearerHeaders(token),
           );
-          console.log('response MARKMESSAGESREAD', response);
+          console.log('UpdateVehicle Response:', response?.data);
           if (response?.data?.statusCode == 200) {
-            dispatch(AuthAction.SaveNotificationCount(0));
+            Toast.show(ToastSuccess(response?.data?.message));
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data);
+          } else {
+            dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
+          }
+        } catch (error) {
+          dispatch(LoaderAction.LoaderFalse());
+          reject(false);
+          Toast.show(ToastError(error.message));
+        }
+      });
+    };
+  }
+
+  static DeleteVehicle(token, id, reason) {
+    return async dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.Delete(
+            endPoints.vehicleById(id),
+            {reason},
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('DeleteVehicle Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
+            Toast.show(ToastSuccess(response?.data?.message));
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data);
+          } else {
+            dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
+          }
+        } catch (error) {
+          dispatch(LoaderAction.LoaderFalse());
+          reject(false);
+          Toast.show(ToastError(error.message));
+        }
+      });
+    };
+  }
+
+  static GetVehicleImages(token, vehicleId) {
+    return async dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const response = await ApiCaller.Get(
+            endPoints.vehicleImages(vehicleId),
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('GetVehicleImages Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
+            resolve(response?.data);
           } else {
             reject(false);
             Toast.show(ToastError(response?.data?.message));
@@ -30,30 +174,29 @@ export class HomeMiddleware extends Component {
       });
     };
   }
-  static AddCard(token, body) {
+
+  static UploadVehicleImages(token, vehicleId, formData) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
           dispatch(LoaderAction.LoaderTrue());
-
-          let response = await ApiCaller.Post(
-            endPoints.addCard,
-            body,
+          const response = await ApiCaller.PostForm(
+            endPoints.vehicleImages(vehicleId),
+            formData,
             ApiCaller.BearerHeaders(token),
           );
-          console.log('response ADDCARD', response);
-          if (response?.data?.statusCode == 200) {
+          console.log('UploadVehicleImages Response:', response?.data);
+          if (
+            response?.data?.statusCode == 200 ||
+            response?.data?.statusCode == 201
+          ) {
+            Toast.show(ToastSuccess(response?.data?.message));
             dispatch(LoaderAction.LoaderFalse());
             resolve(response?.data);
           } else {
             dispatch(LoaderAction.LoaderFalse());
             reject(false);
-            // Toast.show(ToastError(response?.data?.message));
-            Alert.alert(
-              'Error',
-              response?.data?.message ||
-                'Failed to add card. Please try again.',
-            );
+            Toast.show(ToastError(response?.data?.message));
           }
         } catch (error) {
           dispatch(LoaderAction.LoaderFalse());
@@ -63,30 +206,58 @@ export class HomeMiddleware extends Component {
       });
     };
   }
-  static DeleteCard(token, id) {
+
+  static UpdateVehicleImage(token, vehicleId, imageId, formData) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
           dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.PutForm(
+            endPoints.vehicleImageById(vehicleId, imageId),
+            formData,
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('UpdateVehicleImage Response:', response?.data);
+          if (
+            response?.data?.statusCode == 200 ||
+            response?.data?.statusCode == 201
+          ) {
+            Toast.show(ToastSuccess(response?.data?.message));
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data);
+          } else {
+            dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
+          }
+        } catch (error) {
+          dispatch(LoaderAction.LoaderFalse());
+          reject(false);
+          Toast.show(ToastError(error.message));
+        }
+      });
+    };
+  }
 
-          let response = await ApiCaller.Delete(
-            `${endPoints.deleteCard(id)}`,
+  static DeleteVehicleImage(token, vehicleId, imageId) {
+    return async dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.Delete(
+            endPoints.vehicleImageById(vehicleId, imageId),
             {},
             ApiCaller.BearerHeaders(token),
           );
-          console.log('response DELETECARD', response);
+          console.log('DeleteVehicleImage Response:', response?.data);
           if (response?.data?.statusCode == 200) {
+            Toast.show(ToastSuccess(response?.data?.message));
             dispatch(LoaderAction.LoaderFalse());
             resolve(response?.data);
           } else {
             dispatch(LoaderAction.LoaderFalse());
             reject(false);
-            // Toast.show(ToastError(response?.data?.message));
-            Alert.alert(
-              'Error',
-              response?.data?.message ||
-                'Failed to add card. Please try again.',
-            );
+            Toast.show(ToastError(response?.data?.message));
           }
         } catch (error) {
           dispatch(LoaderAction.LoaderFalse());
@@ -96,197 +267,18 @@ export class HomeMiddleware extends Component {
       });
     };
   }
-  static SetDefaultCard(token, id) {
-    return async dispatch => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          let response = await ApiCaller.Post(
-            `${endPoints.setDefaultCard}/${id}`,
-            {},
-            ApiCaller.BearerHeaders(token),
-          );
-          console.log('response SETDEFAULTCARD', response);
-          if (response?.data?.statusCode == 200) {
-            resolve(response?.data);
-          } else {
-            reject(false);
-            Toast.show(ToastError(response?.data?.message));
-          }
-        } catch (error) {
-          reject(false);
-          Toast.show(ToastError(error.message));
-        }
-      });
-    };
-  }
-  static GetBankAccounts(token) {
-    return async dispatch => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          dispatch(LoaderAction.LoaderTrue());
 
-          let response = await ApiCaller.Get(
-            endPoints.cards,
-            ApiCaller.BearerHeaders(token),
-          );
-          console.log('response GETBANKACCOUNTS', response);
-          if (response?.data?.statusCode == 200) {
-            dispatch(LoaderAction.LoaderFalse());
-            resolve(response?.data);
-          } else {
-            dispatch(LoaderAction.LoaderFalse());
-            reject(false);
-            Toast.show(ToastError(response?.data?.message));
-          }
-        } catch (error) {
-          dispatch(LoaderAction.LoaderFalse());
-          reject(false);
-          Toast.show(ToastError(error.message));
-        }
-      });
-    };
-  }
-  static GetNotificationsCount(token) {
-    return async dispatch => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          let response = await ApiCaller.Get(
-            endPoints.unreadNotifications,
-            ApiCaller.BearerHeaders(token),
-          );
-          console.log('response GETNOTIFICATIONSCount', response);
-          if (response?.data?.statusCode == 200) {
-            resolve(response?.data);
-          } else {
-            reject(false);
-            Toast.show(ToastError(response?.data?.message));
-          }
-        } catch (error) {
-          reject(false);
-          Toast.show(ToastError(error.message));
-        }
-      });
-    };
-  }
-  static DownloadInvoice(token, invoiceId) {
-    return async dispatch => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          dispatch(LoaderAction.LoaderTrue());
+  // ─── Messages ─────────────────────────────────────────────────────────────
 
-          let response = await ApiCaller.Get(
-            endPoints.downloadInvoice(invoiceId),
-            ApiCaller.BearerHeaders(token),
-          );
-          console.log('response DOWNLOADINVOICE', response);
-          if (response?.data?.statusCode == 200) {
-            dispatch(LoaderAction.LoaderFalse());
-            resolve(response?.data);
-          } else {
-            dispatch(LoaderAction.LoaderFalse());
-            reject(false);
-            Toast.show(ToastError(response?.data?.message));
-          }
-        } catch (error) {
-          dispatch(LoaderAction.LoaderFalse());
-          reject(false);
-          Toast.show(ToastError(error.message));
-        }
-      });
-    };
-  }
-  static ProcessPayment(token, invoiceId) {
-    return async dispatch => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          dispatch(LoaderAction.LoaderTrue());
-
-          let response = await ApiCaller.Post(
-            endPoints.processPayment(invoiceId),
-            {},
-            ApiCaller.BearerHeaders(token),
-          );
-          console.log('response PROCESSPAYMENT', response);
-          if (response?.data?.statusCode == 200) {
-            dispatch(LoaderAction.LoaderFalse());
-            resolve(response?.data);
-          } else {
-            dispatch(LoaderAction.LoaderFalse());
-            reject(false);
-            Toast.show(ToastError(response?.data?.message));
-          }
-        } catch (error) {
-          dispatch(LoaderAction.LoaderFalse());
-          reject(false);
-          Toast.show(ToastError(error.message));
-        }
-      });
-    };
-  }
-  static GetOrders(token, filter) {
-    return async dispatch => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          dispatch(LoaderAction.LoaderTrue());
-
-          let response = await ApiCaller.Get(
-            endPoints.orders + `?filter=${filter}`,
-            ApiCaller.BearerHeaders(token),
-          );
-          console.log('response getorderssss', response);
-          if (response?.data?.statusCode == 200) {
-            dispatch(LoaderAction.LoaderFalse());
-            resolve(response?.data);
-          } else {
-            dispatch(LoaderAction.LoaderFalse());
-            reject(false);
-            Toast.show(ToastError(response?.data?.message));
-          }
-        } catch (error) {
-          dispatch(LoaderAction.LoaderFalse());
-          reject(false);
-          Toast.show(ToastError(error.message));
-        }
-      });
-    };
-  }
-  static SendMessage(token, body) {
-    return async dispatch => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          dispatch(LoaderAction.LoaderTrue());
-
-          let response = await ApiCaller.Post(
-            endPoints.sendMessage,
-            body,
-            ApiCaller.BearerHeaders(token),
-          );
-          console.log('response SENDMESSAGE', response);
-          if (response?.data?.statusCode == 200) {
-            dispatch(LoaderAction.LoaderFalse());
-            resolve(response?.data);
-          } else {
-            dispatch(LoaderAction.LoaderFalse());
-            reject(false);
-            Toast.show(ToastError(response?.data?.message));
-          }
-        } catch (error) {
-          dispatch(LoaderAction.LoaderFalse());
-          reject(false);
-          Toast.show(ToastError(error.message));
-        }
-      });
-    };
-  }
   static GetMessages(token) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
-          let response = await ApiCaller.Get(
+          const response = await ApiCaller.Get(
             endPoints.messages,
             ApiCaller.BearerHeaders(token),
           );
-          console.log('response GETMESSAGES', response);
+          console.log('GetMessages Response:', response?.data);
           if (response?.data?.statusCode == 200) {
             resolve(response?.data);
           } else {
@@ -300,50 +292,22 @@ export class HomeMiddleware extends Component {
       });
     };
   }
-  static GetBids(filter, token) {
-    return async dispatch => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          // dispatch(LoaderAction.LoaderTrue());
 
-          let response = await ApiCaller.Get(
-            endPoints.bids + `?filter=${filter}`,
-            ApiCaller.BearerHeaders(token),
-          );
-          console.log('response GETBIDS', response);
-          if (response?.data?.statusCode == 200) {
-            // dispatch(LoaderAction.LoaderFalse());
-            resolve(response?.data);
-          } else {
-            // dispatch(LoaderAction.LoaderFalse());
-            reject(false);
-            Toast.show(ToastError(response?.data?.message));
-          }
-        } catch (error) {
-          // dispatch(LoaderAction.LoaderFalse());
-          reject(false);
-          Toast.show(ToastError(error.message));
-        }
-      });
-    };
-  }
-  static PlaceBid(payload, token) {
+  static SendMessage(token, formData) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
           dispatch(LoaderAction.LoaderTrue());
-
-          let response = await ApiCaller.Post(
-            endPoints.bidPlace,
-            payload,
+          const response = await ApiCaller.PostForm(
+            endPoints.messages,
+            formData,
             ApiCaller.BearerHeaders(token),
           );
-          console.log('response', response);
-          if (response?.data?.statusCode == 200) {
-            dispatch(LoaderAction.LoaderFalse());
-            resolve(response?.data);
-          } else if (response?.data?.statusCode == 201) {
-            // payment method required
+          console.log('SendMessage Response:', response?.data);
+          if (
+            response?.data?.statusCode == 200 ||
+            response?.data?.statusCode == 201
+          ) {
             dispatch(LoaderAction.LoaderFalse());
             resolve(response?.data);
           } else {
@@ -360,128 +324,214 @@ export class HomeMiddleware extends Component {
     };
   }
 
-  static GetBidStats(token) {
+  static GetUnreadCount(token) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
-          let response = await ApiCaller.Get(
-            `${endPoints.bidsStats}`,
+          const response = await ApiCaller.Get(
+            endPoints.messagesUnreadCount,
             ApiCaller.BearerHeaders(token),
           );
-          console.log('STATS RESPONSE', response);
+          console.log('GetUnreadCount Response:', response?.data);
           if (response?.data?.statusCode == 200) {
-            resolve(response?.data?.data);
+            dispatch(AuthAction.SaveNotificationCount(response?.data?.data?.count ?? 0));
+            resolve(response?.data);
           } else {
             reject(false);
-            console.log(response?.data?.message);
+          }
+        } catch (error) {
+          reject(false);
+          console.log('GetUnreadCount Error:', error.message);
+        }
+      });
+    };
+  }
+
+  static PollMessages(token, lastMessageId = 0) {
+    return async dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const response = await ApiCaller.Get(
+            `${endPoints.messagesPoll}?last_message_id=${lastMessageId}`,
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('PollMessages Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
+            resolve(response?.data);
+          } else {
+            reject(false);
+          }
+        } catch (error) {
+          reject(false);
+          console.log('PollMessages Error:', error.message);
+        }
+      });
+    };
+  }
+
+  static MarkMessagesRead(token, messageIds) {
+    return async dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const response = await ApiCaller.Post(
+            endPoints.messagesMarkAsRead,
+            {message_ids: messageIds},
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('MarkMessagesRead Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
+            dispatch(AuthAction.SaveNotificationCount(0));
+            resolve(response?.data);
+          } else {
+            reject(false);
             Toast.show(ToastError(response?.data?.message));
           }
         } catch (error) {
           reject(false);
           Toast.show(ToastError(error.message));
-          console.log(error);
         }
       });
     };
   }
-  static GetCategories(token) {
+
+  static DeleteMessage(token, id) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
-          let response = await ApiCaller.Get(
-            `${endPoints.categories}`,
+          const response = await ApiCaller.Delete(
+            endPoints.deleteMessage(id),
+            {},
             ApiCaller.BearerHeaders(token),
           );
-          console.log('CATEGORIES RESPONSE', response);
+          console.log('DeleteMessage Response:', response?.data);
           if (response?.data?.statusCode == 200) {
-            resolve(response?.data?.data);
+            resolve(response?.data);
           } else {
             reject(false);
-            console.log(response?.data?.message);
             Toast.show(ToastError(response?.data?.message));
           }
         } catch (error) {
           reject(false);
           Toast.show(ToastError(error.message));
-          console.log(error);
         }
       });
     };
   }
-  static GetAuctions(token, params) {
-    return async dispatch => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          let response = await ApiCaller.Get(
-            `${endPoints.auctions}?${params}`,
-            ApiCaller.BearerHeaders(token),
-          );
-          console.log('AUCTIONS RESPONSE', response);
-          if (response?.data?.statusCode == 200) {
-            resolve(response?.data?.data);
-          } else {
-            reject(false);
-            console.log(response?.data?.message);
-            Toast.show(ToastError(response?.data?.message));
-          }
-        } catch (error) {
-          reject(false);
-          Toast.show(ToastError(error.message));
-          console.log(error);
-        }
-      });
-    };
-  }
-  static GetAuctionDetails(id, token) {
+
+  // ─── Monthly Reports ───────────────────────────────────────────────────────
+
+  static SubmitMonthlyReport(token, formData) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
           dispatch(LoaderAction.LoaderTrue());
-          let response = await ApiCaller.Get(
-            `${endPoints.auctions}/${id}`,
+          const response = await ApiCaller.PostForm(
+            endPoints.monthlyReports,
+            formData,
             ApiCaller.BearerHeaders(token),
           );
-          console.log('RES AUCTION DETAILS', response);
-          dispatch(LoaderAction.LoaderFalse());
-          if (response?.data?.statusCode == 200) {
-            resolve(response?.data?.data);
+          console.log('SubmitMonthlyReport Response:', response?.data);
+          if (
+            response?.data?.statusCode == 201 ||
+            response?.data?.statusCode == 200
+          ) {
+            Toast.show(ToastSuccess(response?.data?.message));
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data);
           } else {
+            dispatch(LoaderAction.LoaderFalse());
             reject(false);
-            console.log(response?.data?.message);
             Toast.show(ToastError(response?.data?.message));
           }
         } catch (error) {
           dispatch(LoaderAction.LoaderFalse());
           reject(false);
           Toast.show(ToastError(error.message));
-          console.log(error);
         }
       });
     };
   }
-  static GetInvoices(token, params) {
+
+  static GetMonthlyReports(token, orderId) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
           dispatch(LoaderAction.LoaderTrue());
-          let response = await ApiCaller.Get(
-            `${endPoints.invoices}?${params}`,
+          const response = await ApiCaller.Get(
+            endPoints.monthlyReportsByOrder(orderId),
             ApiCaller.BearerHeaders(token),
           );
-          console.log('INVOICES RESPONSE', response);
-          dispatch(LoaderAction.LoaderFalse());
+          console.log('GetMonthlyReports Response:', response?.data);
           if (response?.data?.statusCode == 200) {
-            resolve(response?.data?.data);
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data);
           } else {
+            dispatch(LoaderAction.LoaderFalse());
             reject(false);
-            console.log(response?.data?.message);
             Toast.show(ToastError(response?.data?.message));
           }
         } catch (error) {
           dispatch(LoaderAction.LoaderFalse());
           reject(false);
           Toast.show(ToastError(error.message));
-          console.log(error);
+        }
+      });
+    };
+  }
+
+  // ─── Orders ───────────────────────────────────────────────────────────────
+
+  static GetOrders(token, perPage = 15) {
+    return async dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.Get(
+            `${endPoints.orders}?per_page=${perPage}`,
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('GetOrders Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data);
+          } else {
+            dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
+          }
+        } catch (error) {
+          dispatch(LoaderAction.LoaderFalse());
+          reject(false);
+          Toast.show(ToastError(error.message));
+        }
+      });
+    };
+  }
+
+  // ─── Payments ─────────────────────────────────────────────────────────────
+
+  static GetPayments(token, perPage = 20) {
+    return async dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.Get(
+            `${endPoints.payments}?per_page=${perPage}`,
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('GetPayments Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data);
+          } else {
+            dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
+          }
+        } catch (error) {
+          dispatch(LoaderAction.LoaderFalse());
+          reject(false);
+          Toast.show(ToastError(error.message));
         }
       });
     };

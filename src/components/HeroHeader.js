@@ -15,7 +15,7 @@ import { useSelector } from "react-redux";
 import TextComponent from "./TextComponent";
 export default function HeroHeader({ title = null }) {
   const navigation = useNavigation();
-  const { user } = useSelector((state) => state.AuthReducer);
+  const user = useSelector((state) => state.AuthReducer?.user?.user);
   return (
     <View style={styles.containerTopRound}>
       <View
@@ -26,8 +26,8 @@ export default function HeroHeader({ title = null }) {
         }}
       >
         <Image source={Images.logo} style={styles.avatar} />
-        <Text style={styles.title}>
-          Hi, {user?.first_name + " " + user?.last_name || "User"}
+        <Text numberOfLines={1} style={styles.title}>
+          Hi, {user?.full_name}
         </Text>
       </View>
       {/* <TouchableOpacity
@@ -67,5 +67,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.SemiBold,
     color: Colors.white,
     marginTop: 10,
+    width: "55%",
   },
 });

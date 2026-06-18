@@ -1,53 +1,30 @@
 import Axios from 'axios';
 import Toast from 'react-native-toast-message';
-import { NavigationService } from '.';
-import { ToastError } from './Constants';
-import { Store } from '../redux';
-import { AuthAction } from '../redux/Actions';
-import { useSelector } from 'react-redux';
-import axios from 'axios';
+import {NavigationService} from '.';
+import {ToastError} from './Constants';
+import {Store} from '../redux';
+import {AuthAction} from '../redux/Actions';
 
-//
-
-export var baseUrl = 'https://favorauction.com/api/v1';
-export const imageBaseUrl = 'https://favorauction.com/';
-export const SQUARE_APP_ID = 'sandbox-sq0idb-0O2EKrJd72_CZWyEjZfiYw';
-// export const SQUARE_APP_ID = 'sq0idp-u-jf34VX2g2aFwjXg0YtdA';
+export var baseUrl =
+  'https://client72.vtechost.com/VisionRideMedia/public/api/mobility-partner';
+export const imageBaseUrl =
+  'https://client72.vtechost.com/VisionRideMedia/public/';
 
 var CancelToken = Axios.CancelToken.source();
-
-// const token = Store.getState().AuthReducer?.user?.token;
-// axios.defaults.headers.common['Authorization'] = token ? `Bearer ${token}` : '';
-
-// Axios.interceptors.request.use(function (config) {
-//  const id =  Store.getState().AuthReducer.accountId
-//    console.log("userID===> ", Store.getState().AuthReducer.accountId);
-//   config.headers.DefaultAccountId = id;
-//   return config;
-// });
 
 Axios.interceptors.response.use(
   response => {
     if (response == undefined) {
-      // Toast.show(ToastError('Network error, please try again.'));
       return {
         status: 401,
-        data: { message: 'Session Expired! Please login.' },
+        data: {message: 'Session Expired! Please login.'},
       };
     }
     return response;
   },
-  async ({ response, ...rest }) => {
+  async ({response}) => {
     if (response?.status == 401) {
       try {
-        // let {
-        //   AuthReducer: {
-        //     user: {refreshToken},
-        //   },
-        // } = Store.getState();
-        //  console.warn("401 UnAuthenticated")
-        // Axios.CancelToken();
-
         CancelToken.cancel('Network error');
         console.log('Session Expired!', response);
         Toast.show(ToastError('Session Expired! Please login.'));
@@ -55,36 +32,33 @@ Axios.interceptors.response.use(
         Store.dispatch(AuthAction.Signout());
         NavigationService.resetStack('AuthStack');
         setTimeout(() => {
-          CancelToken = Axios.CancelToken.source(); // 🔥 RESET TOKEN
+          CancelToken = Axios.CancelToken.source();
         }, 500);
-        // CancelToken = Axios.CancelToken.source(); // 🔥 RESET TOKEN
-        // });
       } catch (err) {
-        console.log('Error= ===', err);
-        // Toast.show(ToastError('Network error, please try again.'));
+        console.log('Interceptor Error:', err);
       }
-    } else if (response.status == 0) {
-      // console.log('response', response);
-      return { ...response, data: { message: response?._response } };
+    } else if (response?.status == 0) {
+      return {...response, data: {message: response?._response}};
     }
     return response;
   },
 );
 
 export default class ApiCaller {
-  static BearerHeaders = (token: any, More: AxiosRequestConfig = {}) => {
+  static BearerHeaders = (token, More = {}) => {
     return {
       Authorization: 'Bearer ' + token,
       ...More,
     };
   };
-  static Get = (url = '', headers = {}, data = {}) => {
-    this.source = CancelToken;
-    console.log('===>>>APICALLGet', baseUrl, url);
 
+  static Get = (url = '', headers = {}) => {
+    this.source = CancelToken;
+    console.log('===>>> API GET:', baseUrl + url);
     return Axios.get(`${baseUrl}${url}`, {
       cancelToken: this.source.token,
       headers: {
+        Accept: 'application/json',
         'Content-Type': 'application/json; charset=utf-8',
         ...headers,
       },
@@ -97,31 +71,79 @@ export default class ApiCaller {
     endPoint = '',
     body = {},
     headers = {},
-    cutomUrl = '',
+    customUrl = '',
     onUploadProgress = () => {},
   ) => {
-    console.log('===>>>APICALLPost', baseUrl, endPoint, body);
-    return Axios.post(cutomUrl ? cutomUrl : `${baseUrl}${endPoint}`, body, {
+    console.log('===>>> API POST:', baseUrl + endPoint, body);
+    return Axios.post(
+      customUrl ? customUrl : `${baseUrl}${endPoint}`,
+      body,
+      {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        onUploadProgress: progress => onUploadProgress(progress),
+      },
+    );
+  };
+
+  // For multipart/form-data (file uploads)
+  static PostForm = async (
+    endPoint = '',
+    formData,
+    headers = {},
+    onUploadProgress = () => {},
+  ) => {
+    console.log('===>>> API POST (FormData):', baseUrl + endPoint);
+    return Axios.post(`${baseUrl}${endPoint}`, formData, {
       headers: {
         Accept: 'application/json',
-        'Content-Type': 'application/json',
+        'Content-Type': 'multipart/form-data',
         ...headers,
       },
       onUploadProgress: progress => onUploadProgress(progress),
-    });
+    })
+      .then(res => res)
+      .catch(err => err.response);
+  };
+
+  // For multipart/form-data updates (Laravel parses multipart on POST only,
+  // so we tunnel PUT through POST via the _method override)
+  static PutForm = async (
+    endPoint = '',
+    formData,
+    headers = {},
+    onUploadProgress = () => {},
+  ) => {
+    formData.append('_method', 'PUT');
+    console.log('===>>> API PUT (FormData):', baseUrl + endPoint);
+    return Axios.post(`${baseUrl}${endPoint}`, formData, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'multipart/form-data',
+        ...headers,
+      },
+      onUploadProgress: progress => onUploadProgress(progress),
+    })
+      .then(res => res)
+      .catch(err => err.response);
   };
 
   static Put = (url = '', body = {}, headers = {}) => {
+    console.log('===>>> API PUT:', baseUrl + url, body);
     return Axios.put(`${baseUrl}${url}`, body, {
-      headers: { 'Content-Type': 'application/json', ...headers },
+      headers: {'Content-Type': 'application/json', ...headers},
     })
       .then(res => res)
       .catch(err => err.response);
   };
 
   static Delete = (url = '', body = {}, headers = {}) => {
+    console.log('===>>> API DELETE:', baseUrl + url);
     return Axios.delete(`${baseUrl}${url}`, {
-      headers: { 'Content-Type': 'application/json', ...headers },
+      headers: {'Content-Type': 'application/json', ...headers},
       data: body,
     })
       .then(res => res)

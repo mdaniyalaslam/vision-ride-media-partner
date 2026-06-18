@@ -1,81 +1,90 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import React, { useState } from 'react';
-import { Colors, Metrix, NavigationService } from '../../config';
-import { Button, Header, TextField } from '../../components';
-import { fonts, ToastError } from '../../config/Constants';
-import useStyle from '../styles';
+import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useState} from 'react';
+import {Colors, Metrix, NavigationService} from '../../config';
+import {Button, Header, TextField} from '../../components';
+import {fonts, ToastError, ToastSuccess} from '../../config/Constants';
 import Toast from 'react-native-toast-message';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {AuthMiddleware} from '../../redux/Middlewares';
+import {useDispatch} from 'react-redux';
 
-export default function ResetPassword({ route }) {
-  const gStyle = useStyle();
-  const [password1, setPassword1] = useState('');
-  const [password2, setPassword2] = useState('');
-  const { emailAddress } = route?.params;
+export default function ResetPassword({route}) {
+  const dispatch = useDispatch();
+  const {emailAddress, otp} = route?.params ?? {};
+
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [seePassword, setSeePassword] = useState(false);
+  const [seeConfirm, setSeeConfirm] = useState(false);
 
   const submit = () => {
-    return;
-    if (!password1) {
-      Toast.show(ToastError('Please create a new password.'));
-      return;
+    if (!password) {
+      return Toast.show(ToastError('Please create a new password.'));
     }
-    if (!password2) {
-      Toast.show(ToastError('Please confirm your password.'));
-      return;
+    if (!confirmPassword) {
+      return Toast.show(ToastError('Please confirm your password.'));
     }
-    if (password1 != password2) {
-      Toast.show(ToastError('Passwords do not match.'));
-      return;
-    }
-    if (!password1.trimLeft() || !password2.trimLeft()) {
-      Toast.show(ToastError('Please enter a valid password.'));
-      return;
+    if (password !== confirmPassword) {
+      return Toast.show(ToastError('Passwords do not match.'));
     }
 
-    dispatch(
-      AuthMiddleware.ChangePassword({
-        userEmail: emailAddress,
-        newPassword: password1,
-        confirmPassword: password2,
-      }),
-    )
+    const body = {
+      email: emailAddress,
+      otp: otp,
+      password: password,
+      password_confirmation: confirmPassword,
+    };
+
+    dispatch(AuthMiddleware.ResetPassword(body))
       .then(data => {
-        NavigationService.navigate('AuthStack', { screen: 'Login' });
+        console.log('ResetPassword Success:', data);
+        Toast.show(ToastSuccess('Password reset successfully. Please login.'));
+        NavigationService.resetStack('AuthStack');
       })
-      .catch(err => console.warn(err));
+      .catch(err => console.warn('ResetPassword Error:', err));
   };
 
   return (
     <View style={styles.container}>
-      {/* <Header /> */}
+      <Header backIcon={true} title="Reset Password" />
       <ScrollView style={styles.main_View} bounces={false}>
-        <Text style={styles.title}>Reset Password</Text>
-        <Text style={gStyle.description}>
+        <Text style={styles.description}>
           Create a new password for your account.
         </Text>
-        <View>
-          <View style={{ marginVertical: Metrix.VerticalSize(10) }}>
-            <Text style={styles.subTitle}> New Password </Text>
-            <TextField
-              value={password1}
-              placeholder="New Password*"
-              onChangeText={text => setPassword1(text)}
-              secureTextEntry={true}
-            />
-          </View>
 
-          <View style={{ marginVertical: Metrix.VerticalSize(10) }}>
-            <Text style={styles.subTitle}> Confirm Password </Text>
-            <TextField
-              value={password2}
-              placeholder="Confirm Password*"
-              onChangeText={text => setPassword2(text)}
-              secureTextEntry={true}
-            />
-          </View>
-          <View style={{ marginTop: Metrix.VerticalSize(20) }}>
-            <Button title={'Reset Password'} onPress={submit} />
-          </View>
+        <TextField
+          label="New Password*"
+          value={password}
+          onChangeText={text => setPassword(text)}
+          secureTextEntry={!seePassword}
+          rightIcon={
+            <TouchableOpacity onPress={() => setSeePassword(p => !p)}>
+              <Ionicons
+                name={seePassword ? 'eye-outline' : 'eye-off-outline'}
+                color={Colors.darkGray}
+                size={Metrix.customFontSize(20)}
+              />
+            </TouchableOpacity>
+          }
+        />
+        <TextField
+          label="Confirm Password*"
+          value={confirmPassword}
+          onChangeText={text => setConfirmPassword(text)}
+          secureTextEntry={!seeConfirm}
+          rightIcon={
+            <TouchableOpacity onPress={() => setSeeConfirm(p => !p)}>
+              <Ionicons
+                name={seeConfirm ? 'eye-outline' : 'eye-off-outline'}
+                color={Colors.darkGray}
+                size={Metrix.customFontSize(20)}
+              />
+            </TouchableOpacity>
+          }
+        />
+
+        <View style={{marginTop: Metrix.VerticalSize(20)}}>
+          <Button title={'Reset Password'} onPress={submit} />
         </View>
       </ScrollView>
     </View>
@@ -87,20 +96,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  title: {
-    fontFamily: fonts.Bold,
-    marginTop: Metrix.VerticalSize(140),
-    fontSize: Metrix.customFontSize(28),
-    color: Colors.primary,
-  },
   main_View: {
     marginTop: Metrix.VerticalSize(10),
-    marginBottom: Metrix.VerticalSize(10),
     paddingHorizontal: Metrix.HorizontalSize(20),
   },
-  subTitle: {
-    fontFamily: fonts.SemiBold,
+  description: {
+    fontFamily: fonts.Regular,
+    marginVertical: Metrix.VerticalSize(20),
     fontSize: Metrix.customFontSize(14),
-    color: Colors.primary,
+    color: Colors.textColor,
   },
 });

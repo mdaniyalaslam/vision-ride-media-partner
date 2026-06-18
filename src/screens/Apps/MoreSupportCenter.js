@@ -5,19 +5,19 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-} from 'react-native';
-import React, { useState } from 'react';
-import { Colors, Images, Metrix, NavigationService } from '../../config';
-import { Header, TextComponent } from '../../components';
-import { fonts } from '../../config/Constants';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import Feather from 'react-native-vector-icons/Feather';
-import { useDispatch } from 'react-redux';
+} from "react-native";
+import React, { useState } from "react";
+import { Colors, Images, Metrix, NavigationService } from "../../config";
+import { Header, TextComponent } from "../../components";
+import { fonts } from "../../config/Constants";
+import AntDesign from "react-native-vector-icons/AntDesign";
+import Feather from "react-native-vector-icons/Feather";
+import { useDispatch } from "react-redux";
 
-const MoreSupportCenter = props => {
+const MoreSupportCenter = (props) => {
   const arr = [
     {
-      title: 'How to Bid',
+      title: "About Us",
       icon: (
         <Feather
           name="info"
@@ -26,31 +26,31 @@ const MoreSupportCenter = props => {
         />
       ),
       goto: () => {
-        props.navigation.navigate('WebViewScreen', {
-          title: 'How to Bid',
-          url: 'https://favorauction.com/page/how-to-bid',
+        props.navigation.navigate("WebViewScreen", {
+          title: "About Us",
+          url: "https://favorauction.com/about-us",
         });
       },
     },
 
     {
-      title: 'How to Sell',
+      title: "FAQs",
       icon: (
         <Feather
-          name="info"
+          name="help-circle"
           size={Metrix.customFontSize(22)}
           color={Colors.primary}
         />
       ),
       goto: () => {
-        props.navigation.navigate('WebViewScreen', {
-          title: 'How to Sell',
-          url: 'https://favorauction.com/page/how-to-sell',
+        props.navigation.navigate("WebViewScreen", {
+          title: "FAQ",
+          url: "https://favorauction.com/faqs",
         });
       },
     },
     {
-      title: 'Privacy Policy',
+      title: "Independent contractor status",
       icon: (
         <Feather
           name="file-text"
@@ -59,14 +59,14 @@ const MoreSupportCenter = props => {
         />
       ),
       goto: () => {
-        props.navigation.navigate('WebViewScreen', {
-          title: 'Privacy Policy',
-          url: 'https://favorauction.com/page/privacy-policy',
+        props.navigation.navigate("WebViewScreen", {
+          title: "Advertiser agreement",
+          url: "https://favorauction.com/page/advertiser-agreement",
         });
       },
     },
     {
-      title: 'Contact Us',
+      title: "GPS tracking consent",
       icon: (
         <Feather
           name="file-text"
@@ -75,9 +75,74 @@ const MoreSupportCenter = props => {
         />
       ),
       goto: () => {
-        props.navigation.navigate('WebViewScreen', {
-          title: 'Contact Us',
-          url: 'https://favorauction.com/contact-us',
+        props.navigation.navigate("WebViewScreen", {
+          title: "Refund Policy",
+          url: "https://favorauction.com/page/refund-policy",
+        });
+      },
+    },
+    {
+      title: "Payout rules",
+      icon: (
+        <Feather
+          name="file-text"
+          size={Metrix.customFontSize(22)}
+          color={Colors.primary}
+        />
+      ),
+      goto: () => {
+        props.navigation.navigate("WebViewScreen", {
+          title: "Refund Policy",
+          url: "https://favorauction.com/page/refund-policy",
+        });
+      },
+    },
+
+    {
+      title: "Terms & Conditions",
+      icon: (
+        <Feather
+          name="file-text"
+          size={Metrix.customFontSize(22)}
+          color={Colors.primary}
+        />
+      ),
+      goto: () => {
+        props.navigation.navigate("WebViewScreen", {
+          title: "Terms & Conditions",
+          url: "https://favorauction.com/page/terms-conditions",
+        });
+      },
+    },
+    {
+      title: "Privacy Policy",
+      icon: (
+        <Feather
+          name="file-text"
+          size={Metrix.customFontSize(22)}
+          color={Colors.primary}
+        />
+      ),
+      goto: () => {
+        props.navigation.navigate("WebViewScreen", {
+          title: "Privacy Policy",
+          url: "https://favorauction.com/page/privacy-policy",
+        });
+      },
+    },
+    {
+      title: "Contact Us",
+      icon: (
+        <Feather
+          name="file-text"
+          size={Metrix.customFontSize(22)}
+          color={Colors.primary}
+        />
+      ),
+      goto: () => {
+        props.navigation.navigate("WebViewScreen", {
+          title: "Contact Us",
+          url: "https://favorauction.com/contact-us",
         });
       },
     },
@@ -85,7 +150,7 @@ const MoreSupportCenter = props => {
 
   return (
     <View style={styles.container}>
-      <Header title={'Support Center'} />
+      <Header title={"Support Center"} />
       <ScrollView
         bounces={false}
         showsVerticalScrollIndicator={false}
@@ -108,10 +173,10 @@ const MoreSupportCenter = props => {
                     style={{
                       padding: Metrix.HorizontalSize(5),
                       margin: Metrix.HorizontalSize(10),
-                      flexDirection: 'row',
+                      flexDirection: "row",
                       // backgroundColor: 'red',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
                     {ele.icon}
@@ -125,7 +190,7 @@ const MoreSupportCenter = props => {
                     style={{
                       height: 1,
                       backgroundColor: Colors.lineColor,
-                      width: '100%',
+                      width: "100%",
                     }}
                   ></View>
                 </TouchableOpacity>
@@ -150,22 +215,22 @@ const styles = StyleSheet.create({
   },
   modalTitleContainer: {
     marginVertical: Metrix.VerticalSize(16),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   modalBtnContainer: {
     marginTop: Metrix.VerticalSize(10),
     marginBottom: Metrix.VerticalSize(20),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   subTitle: {
     // flex: 1,
     fontFamily: fonts.Regular,
     fontSize: Metrix.customFontSize(12),
     color: Colors.textColor,
-    textAlign: 'left',
+    textAlign: "left",
     marginTop: Metrix.VerticalSize(22),
   },
 });

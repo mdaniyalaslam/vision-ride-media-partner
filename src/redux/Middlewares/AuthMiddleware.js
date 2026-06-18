@@ -1,13 +1,10 @@
-import React, { Component } from 'react';
-import { Alert, Keyboard, Platform } from 'react-native';
+import React, {Component} from 'react';
 import Toast from 'react-native-toast-message';
-
-import { AuthAction, LoaderAction } from '../Actions';
+import {AuthAction, LoaderAction} from '../Actions';
 import endPoints from '../../config/EndPoints';
-import { ToastError, ToastSuccess } from '../../config/Constants';
+import {ToastError, ToastSuccess} from '../../config/Constants';
 import ApiCaller from '../../config/ApiCaller';
-import { NavigationService } from '../../config';
-// import messaging from '@react-native-firebase/messaging';
+import {NavigationService} from '../../config';
 
 export class AuthMiddleware extends Component {
   static Login(payload) {
@@ -15,55 +12,54 @@ export class AuthMiddleware extends Component {
       return new Promise(async (resolve, reject) => {
         try {
           dispatch(LoaderAction.LoaderTrue());
-
-          let response = await ApiCaller.Post(endPoints.login, payload);
-          console.log('responseLOGIN', response);
+          const response = await ApiCaller.Post(endPoints.login, payload);
+          console.log('Login Response:', response?.data);
           if (response?.data?.statusCode == 200) {
             dispatch(LoaderAction.LoaderFalse());
             dispatch(
               AuthAction.Signin({
-                ...response?.data?.data.user,
-                token: response?.data?.data.token,
+                ...response?.data?.data,
+                token: response?.data?.data?.token,
               }),
             );
             resolve(response?.data);
           } else {
             dispatch(LoaderAction.LoaderFalse());
             reject(false);
-            Toast.show(ToastError(response.data?.message));
+            Toast.show(ToastError(response?.data?.message));
           }
         } catch (e) {
           dispatch(LoaderAction.LoaderFalse());
-          console.log('Error', e);
+          console.log('Login Error:', e);
         }
       });
     };
   }
+
   static Register(payload) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
           dispatch(LoaderAction.LoaderTrue());
-          let response = await ApiCaller.Post(endPoints.register, payload);
-          console.log('responseREGISTER', response);
-          // if (response?.status == 201 || response?.status == 200) {
+          const response = await ApiCaller.Post(endPoints.register, payload);
+          console.log('Register Response:', response?.data);
           if (
             response?.data?.statusCode == 201 ||
             response?.data?.statusCode == 200
           ) {
-            Toast.show(ToastSuccess(response.data?.message));
+            Toast.show(ToastSuccess(response?.data?.message));
             dispatch(LoaderAction.LoaderFalse());
             dispatch(
               AuthAction.Signin({
-                ...response?.data?.data.user,
-                token: response?.data?.data.token,
+                ...response?.data?.data,
+                token: response?.data?.data?.token,
               }),
             );
             resolve(response?.data);
           } else {
             dispatch(LoaderAction.LoaderFalse());
             reject(false);
-            Toast.show(ToastError(response.data?.message));
+            Toast.show(ToastError(response?.data?.message));
           }
         } catch (error) {
           dispatch(LoaderAction.LoaderFalse());
@@ -74,32 +70,27 @@ export class AuthMiddleware extends Component {
     };
   }
 
-  static ForgetPassword({ email, token }) {
+  static ForgetPassword({email}) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
           dispatch(LoaderAction.LoaderTrue());
-          let payload = {
+          const response = await ApiCaller.Post(endPoints.forgotPassword, {
             email,
-          };
-          let response = await ApiCaller.Post(
-            endPoints.forgotPassword,
-            payload,
-            ApiCaller.BearerHeaders(token),
-          );
-          console.log('ForgetPassword Response:', response);
+          });
+          console.log('ForgotPassword Response:', response?.data);
           if (response?.data?.statusCode == 200) {
-            Toast.show(ToastSuccess(response.data?.message));
+            Toast.show(ToastSuccess(response?.data?.message));
             dispatch(LoaderAction.LoaderFalse());
             resolve(response?.data);
           } else {
             dispatch(LoaderAction.LoaderFalse());
             reject(false);
-            Toast.show(ToastError(response.data?.message));
+            Toast.show(ToastError(response?.data?.message));
           }
         } catch (e) {
           dispatch(LoaderAction.LoaderFalse());
-          console.log('Error', e);
+          console.log('ForgotPassword Error:', e);
         }
       });
     };
@@ -110,157 +101,98 @@ export class AuthMiddleware extends Component {
       return new Promise(async (resolve, reject) => {
         try {
           dispatch(LoaderAction.LoaderTrue());
-          let response = await ApiCaller.Post(
+          const response = await ApiCaller.Post(
             endPoints.verifyOtp,
             body,
             ApiCaller.BearerHeaders(token),
           );
-          console.log('VerifyOtp Response:', response);
+          console.log('VerifyOtp Response:', response?.data);
           if (response?.data?.statusCode == 200) {
-            Toast.show(ToastSuccess(response.data?.message));
+            Toast.show(ToastSuccess(response?.data?.message));
             dispatch(LoaderAction.LoaderFalse());
             resolve(response?.data);
           } else {
             dispatch(LoaderAction.LoaderFalse());
             reject(false);
-            Toast.show(ToastError(response.data?.message));
+            Toast.show(ToastError(response?.data?.message));
           }
         } catch (e) {
           dispatch(LoaderAction.LoaderFalse());
-          console.log('Error', e);
+          console.log('VerifyOtp Error:', e);
         }
       });
     };
   }
+
   static ResetPassword(body) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
           dispatch(LoaderAction.LoaderTrue());
-
-          let response = await ApiCaller.Post(endPoints.resetPassword, body);
-          console.log('ResetPassword Response:', response);
+          const response = await ApiCaller.Post(endPoints.resetPassword, body);
+          console.log('ResetPassword Response:', response?.data);
           if (response?.data?.statusCode == 200) {
-            Toast.show(ToastSuccess(response.data?.message));
+            Toast.show(ToastSuccess(response?.data?.message));
             dispatch(LoaderAction.LoaderFalse());
             resolve(response?.data);
           } else {
             dispatch(LoaderAction.LoaderFalse());
             reject(false);
-            Toast.show(ToastError(response.data?.message));
+            Toast.show(ToastError(response?.data?.message));
           }
         } catch (e) {
           dispatch(LoaderAction.LoaderFalse());
-          console.log('Error', e);
+          console.log('ResetPassword Error:', e);
         }
       });
     };
   }
-  static DeleteAccount(token) {
+
+  static Logout(token) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
           dispatch(LoaderAction.LoaderTrue());
-
-          let response = await ApiCaller.Delete(
-            endPoints.deleteAccount,
+          const response = await ApiCaller.Post(
+            endPoints.logout,
             {},
             ApiCaller.BearerHeaders(token),
           );
-          console.log('DeleteAccount Response:', response);
-          if (response?.data?.statusCode == 200) {
-            dispatch(LoaderAction.LoaderFalse());
-            resolve(response?.data);
-          } else {
-            dispatch(LoaderAction.LoaderFalse());
-            reject(false);
-            Toast.show(ToastError(response.data?.message));
-          }
+          console.log('Logout Response:', response?.data);
+          dispatch(LoaderAction.LoaderFalse());
+          dispatch(AuthAction.Signout());
+          resolve(response?.data);
         } catch (e) {
           dispatch(LoaderAction.LoaderFalse());
-          console.log('Error', e);
+          dispatch(AuthAction.Signout());
+          console.log('Logout Error:', e);
         }
       });
     };
   }
-  static GetCountries(token) {
+
+  static DeleteAccount(token, password) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {
         try {
           dispatch(LoaderAction.LoaderTrue());
-
-          let response = await ApiCaller.Get(
-            endPoints.countries,
+          const response = await ApiCaller.Delete(
+            endPoints.deleteAccount,
+            {password},
             ApiCaller.BearerHeaders(token),
           );
-          console.log('GetCountries Response:', response);
+          console.log('DeleteAccount Response:', response?.data);
           if (response?.data?.statusCode == 200) {
             dispatch(LoaderAction.LoaderFalse());
             resolve(response?.data);
           } else {
             dispatch(LoaderAction.LoaderFalse());
             reject(false);
-            Toast.show(ToastError(response.data?.message));
+            Toast.show(ToastError(response?.data?.message));
           }
         } catch (e) {
           dispatch(LoaderAction.LoaderFalse());
-          console.log('Error', e);
-        }
-      });
-    };
-  }
-
-  static ChangePassword(token, body) {
-    return async dispatch => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          dispatch(LoaderAction.LoaderTrue());
-
-          const response = await ApiCaller.Post(
-            endPoints.changePassword,
-            body,
-            ApiCaller.BearerHeaders(token),
-          );
-          console.log(response);
-          if (response?.data?.statusCode == 200) {
-            Toast.show(ToastSuccess(response.data?.message));
-            dispatch(LoaderAction.LoaderFalse());
-            resolve(response?.data);
-          } else {
-            dispatch(LoaderAction.LoaderFalse());
-            reject(false);
-            Toast.show(ToastError(response.data?.message));
-          }
-        } catch (e) {
-          dispatch(LoaderAction.LoaderFalse());
-          console.log('Error', e);
-        }
-      });
-    };
-  }
-
-  static UpdateProfile(token, userData) {
-    return dispatch => {
-      return new Promise(async (resolve, reject) => {
-        try {
-          dispatch(LoaderAction.LoaderTrue());
-          const response = await ApiCaller.Put(
-            `${endPoints.profile}`,
-            userData,
-            ApiCaller.BearerHeaders(token),
-          );
-          console.log('RES UpdateProfile', response);
-          if (response.data.statusCode === 200) {
-            resolve(response.data.data);
-            dispatch(LoaderAction.LoaderFalse());
-          } else {
-            reject(false);
-            dispatch(LoaderAction.LoaderFalse());
-          }
-        } catch (error) {
-          reject(false);
-          dispatch(LoaderAction.LoaderFalse());
-          Toast.show(ToastError(error.message));
+          console.log('DeleteAccount Error:', e);
         }
       });
     };
@@ -272,21 +204,133 @@ export class AuthMiddleware extends Component {
         try {
           dispatch(LoaderAction.LoaderTrue());
           const response = await ApiCaller.Get(
-            `${endPoints.profile}`,
+            endPoints.profile,
             ApiCaller.BearerHeaders(token),
           );
-          console.log('RES GetProfile', response);
-          if (response.data.statusCode === 200) {
-            resolve(response.data.data);
+          console.log('GetProfile Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
             dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data?.data);
           } else {
-            reject(false);
             dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
           }
         } catch (error) {
-          reject(false);
           dispatch(LoaderAction.LoaderFalse());
+          reject(false);
           Toast.show(ToastError(error.message));
+        }
+      });
+    };
+  }
+
+  static GetSettings(token) {
+    return dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.Get(
+            endPoints.getSettings,
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('GetSettings Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data?.data);
+          } else {
+            dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
+          }
+        } catch (error) {
+          dispatch(LoaderAction.LoaderFalse());
+          reject(false);
+          Toast.show(ToastError(error.message));
+        }
+      });
+    };
+  }
+
+  static UpdateProfile(token, userData) {
+    return dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.Put(
+            endPoints.updateProfile,
+            userData,
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('UpdateProfile Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data?.data);
+          } else {
+            dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
+          }
+        } catch (error) {
+          dispatch(LoaderAction.LoaderFalse());
+          reject(false);
+          Toast.show(ToastError(error.message));
+        }
+      });
+    };
+  }
+
+  static ChangePassword(token, body) {
+    return async dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.Put(
+            endPoints.updatePassword,
+            body,
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('ChangePassword Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
+            Toast.show(ToastSuccess(response?.data?.message));
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data);
+          } else {
+            dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
+          }
+        } catch (e) {
+          dispatch(LoaderAction.LoaderFalse());
+          console.log('ChangePassword Error:', e);
+        }
+      });
+    };
+  }
+
+  static UpdateBankDetails(token, body) {
+    return async dispatch => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          dispatch(LoaderAction.LoaderTrue());
+          const response = await ApiCaller.Put(
+            endPoints.updateBank,
+            body,
+            ApiCaller.BearerHeaders(token),
+          );
+          console.log('UpdateBankDetails Response:', response?.data);
+          if (response?.data?.statusCode == 200) {
+            Toast.show(ToastSuccess(response?.data?.message));
+            dispatch(LoaderAction.LoaderFalse());
+            resolve(response?.data);
+          } else {
+            dispatch(LoaderAction.LoaderFalse());
+            reject(false);
+            Toast.show(ToastError(response?.data?.message));
+          }
+        } catch (e) {
+          dispatch(LoaderAction.LoaderFalse());
+          console.log('UpdateBankDetails Error:', e);
         }
       });
     };

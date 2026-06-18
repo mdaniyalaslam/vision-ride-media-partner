@@ -6,32 +6,32 @@ import {
   Image,
   ScrollView,
   Alert,
-} from 'react-native';
-import React, { useState } from 'react';
-import { Colors, Images, Metrix, NavigationService } from '../../config';
+} from "react-native";
+import React, { useState } from "react";
+import { Colors, Images, Metrix, NavigationService } from "../../config";
 import {
   Button,
   CustomModal,
   Header,
   HeroHeader,
   TextComponent,
-} from '../../components';
-import { fonts } from '../../config/Constants';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import Entypo from 'react-native-vector-icons/Entypo';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Feather from 'react-native-vector-icons/Feather';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { AuthAction } from '../../redux/Actions';
-import { useDispatch, useSelector } from 'react-redux';
-import ApiCaller, { endPoints } from '../../config/EndPoints';
-import { AuthMiddleware } from '../../redux/Middlewares';
+} from "../../components";
+import { fonts } from "../../config/Constants";
+import AntDesign from "react-native-vector-icons/AntDesign";
+import Entypo from "react-native-vector-icons/Entypo";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+import Feather from "react-native-vector-icons/Feather";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import { AuthAction } from "../../redux/Actions";
+import { useDispatch, useSelector } from "react-redux";
+import ApiCaller, { endPoints } from "../../config/EndPoints";
+import { AuthMiddleware } from "../../redux/Middlewares";
 
-const More = props => {
+const More = (props) => {
   const arr = [
     {
-      title: 'My Profile',
+      title: "My Profile",
       icon: (
         <FontAwesome
           name="user-o"
@@ -40,12 +40,12 @@ const More = props => {
         />
       ),
       goto: () => {
-        props.navigation.navigate('Profile');
+        props.navigation.navigate("Profile");
       },
     },
 
     {
-      title: 'Invoices',
+      title: "Payments",
       icon: (
         <Entypo
           name="documents"
@@ -54,11 +54,11 @@ const More = props => {
         />
       ),
       goto: () => {
-        props.navigation.navigate('Invoices');
+        props.navigation.navigate("Invoices");
       },
     },
     {
-      title: 'Payment Methods',
+      title: "Bank Account Details",
       icon: (
         <Feather
           name="credit-card"
@@ -67,24 +67,24 @@ const More = props => {
         />
       ),
       goto: () => {
-        props.navigation.navigate('BankAccounts');
+        props.navigation.navigate("BankAccounts");
       },
     },
+    // {
+    //   title: "Company",
+    //   icon: (
+    //     <FontAwesome
+    //       name="building-o"
+    //       size={Metrix.customFontSize(22)}
+    //       color={Colors.primary}
+    //     />
+    //   ),
+    //   goto: () => {
+    //     props.navigation.navigate("MoreCompany");
+    //   },
+    // },
     {
-      title: 'Company',
-      icon: (
-        <FontAwesome
-          name="building-o"
-          size={Metrix.customFontSize(22)}
-          color={Colors.primary}
-        />
-      ),
-      goto: () => {
-        props.navigation.navigate('MoreCompany');
-      },
-    },
-    {
-      title: 'Support Center',
+      title: "Support Center",
       icon: (
         <Feather
           name="help-circle"
@@ -93,11 +93,11 @@ const More = props => {
         />
       ),
       goto: () => {
-        props.navigation.navigate('MoreSupportCenter');
+        props.navigation.navigate("MoreSupportCenter");
       },
     },
     {
-      title: 'Delete My Account',
+      title: "Delete My Account",
       icon: (
         <Feather
           name="trash"
@@ -110,7 +110,7 @@ const More = props => {
       },
     },
     {
-      title: 'Logout',
+      title: "Logout",
       icon: (
         <MaterialIcons
           name="logout"
@@ -128,11 +128,11 @@ const More = props => {
   const [deleteAccountDialogShow, setDeleteAccountDialogShow] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const dispatch = useDispatch();
-  const user = useSelector(state => state.AuthReducer.user);
+  const user = useSelector((state) => state.AuthReducer.user);
 
   const LogoutBtn = () => {
     dispatch(AuthAction.Signout());
-    NavigationService.resetStack('AuthStack', { screen: 'Login' });
+    NavigationService.resetStack("AuthStack", { screen: "Login" });
   };
 
   const handleDeleteAccount = async () => {
@@ -141,27 +141,27 @@ const More = props => {
       await dispatch(AuthMiddleware.DeleteAccount(user?.token));
       setDeleteAccountDialogShow(false);
       Alert.alert(
-        'Account Deleted',
-        'Your account has been successfully deleted.',
+        "Account Deleted",
+        "Your account has been successfully deleted.",
         [
           {
-            text: 'OK',
+            text: "OK",
             onPress: () => {
               dispatch(AuthAction.Signout());
-              NavigationService.resetStack('AuthStack', { screen: 'Login' });
+              NavigationService.resetStack("AuthStack", { screen: "Login" });
             },
           },
         ],
       );
     } catch (error) {
-      console.log('Delete account error:', error);
+      console.log("Delete account error:", error);
     } finally {
       setIsDeleting(false);
     }
   };
   return (
     <View style={styles.container}>
-      <Header title={'More'} isBack={false} />
+      <Header title={"More"} isBack={false} />
       <ScrollView
         bounces={false}
         showsVerticalScrollIndicator={false}
@@ -184,10 +184,10 @@ const More = props => {
                     style={{
                       padding: Metrix.HorizontalSize(5),
                       margin: Metrix.HorizontalSize(10),
-                      flexDirection: 'row',
+                      flexDirection: "row",
                       // backgroundColor: 'red',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
                     {ele.icon}
@@ -201,7 +201,7 @@ const More = props => {
                     style={{
                       height: 1,
                       backgroundColor: Colors.lineColor,
-                      width: '100%',
+                      width: "100%",
                     }}
                   ></View>
                 </TouchableOpacity>
@@ -220,7 +220,7 @@ const More = props => {
       </ScrollView>
 
       <CustomModal
-        title={'Are you sure?'}
+        title={"Are you sure?"}
         show={logoutDialogShow}
         onCloseModal={() => {
           setLogoutDialogShow(false);
@@ -228,9 +228,9 @@ const More = props => {
       >
         <View style={styles.modalStyle}>
           <View style={styles.modalBtnContainer}>
-            <View style={{ width: '48%' }}>
+            <View style={{ width: "48%" }}>
               <Button
-                title={'Yes, Log Out'}
+                title={"Yes, Log Out"}
                 textStyle={{ marginLeft: Metrix.HorizontalSize(5) }}
                 btnStyle={{
                   height: Metrix.VerticalSize(54),
@@ -243,9 +243,9 @@ const More = props => {
                 shadow
               />
             </View>
-            <View style={{ width: '48%' }}>
+            <View style={{ width: "48%" }}>
               <Button
-                title={'Cancel'}
+                title={"Cancel"}
                 textStyle={{
                   marginLeft: Metrix.HorizontalSize(5),
                   color: Colors.white,
@@ -265,7 +265,7 @@ const More = props => {
       </CustomModal>
 
       <CustomModal
-        title={'Delete Account?'}
+        title={"Delete Account?"}
         show={deleteAccountDialogShow}
         onCloseModal={() => {
           setDeleteAccountDialogShow(false);
@@ -274,14 +274,14 @@ const More = props => {
         <View style={styles.modalStyle}>
           <TextComponent
             text={
-              'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.'
+              "Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed."
             }
             style={styles.subTitle}
           />
           <View style={styles.modalBtnContainer}>
-            <View style={{ width: '48%' }}>
+            <View style={{ width: "48%" }}>
               <Button
-                title={isDeleting ? 'Deleting...' : 'Yes, Delete'}
+                title={isDeleting ? "Deleting..." : "Yes, Delete"}
                 textStyle={{ marginLeft: Metrix.HorizontalSize(5) }}
                 btnStyle={{
                   height: Metrix.VerticalSize(54),
@@ -292,9 +292,9 @@ const More = props => {
                 shadow
               />
             </View>
-            <View style={{ width: '48%' }}>
+            <View style={{ width: "48%" }}>
               <Button
-                title={'Cancel'}
+                title={"Cancel"}
                 textStyle={{
                   marginLeft: Metrix.HorizontalSize(5),
                   color: Colors.white,
@@ -328,22 +328,22 @@ const styles = StyleSheet.create({
   },
   modalTitleContainer: {
     marginVertical: Metrix.VerticalSize(16),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   modalBtnContainer: {
     marginTop: Metrix.VerticalSize(10),
     marginBottom: Metrix.VerticalSize(20),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   subTitle: {
     // flex: 1,
     fontFamily: fonts.Regular,
     fontSize: Metrix.customFontSize(12),
     color: Colors.textColor,
-    textAlign: 'left',
+    textAlign: "left",
     marginTop: Metrix.VerticalSize(22),
   },
 });

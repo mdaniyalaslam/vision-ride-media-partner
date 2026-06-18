@@ -1,13 +1,13 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import React from 'react';
-import { Colors, Metrix, NavigationService } from '../../config';
-import { Button, Header, HeroHeader, TextComponent } from '../../components';
-import { fonts } from '../../config/Constants';
-import { useDispatch, useSelector } from 'react-redux';
-import { HomeMiddleware } from '../../redux/Middlewares';
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import React from "react";
+import { Colors, Metrix, NavigationService } from "../../config";
+import { Button, Header, HeroHeader, TextComponent } from "../../components";
+import { fonts } from "../../config/Constants";
+import { useDispatch, useSelector } from "react-redux";
+import { HomeMiddleware } from "../../redux/Middlewares";
 
 const SupportMain = () => {
-  const { user } = useSelector(state => state.AuthReducer);
+  const { user } = useSelector((state) => state.AuthReducer);
   const dispatch = useDispatch();
   const readMsg = () => {
     dispatch(
@@ -20,20 +20,20 @@ const SupportMain = () => {
   return (
     <ScrollView style={styles.container} bounces={false}>
       <View>
-        <Header title={'Support'} isBack={false} />
+        <Header title={"Support"} isBack={false} />
 
         <View style={{ margin: 25 }}>
           <TextComponent
-            customStyles={{ textAlign: 'center' }}
+            customStyles={{ textAlign: "center" }}
             text="Start a conversation with admin!"
           />
 
           <Button
             buttonStyle={{ marginVertical: 20 }}
-            title={'Start a conversation'}
+            title={"Start a conversation"}
             onPress={() => {
-              readMsg();
-              NavigationService.navigate('Support');
+              // readMsg();
+              NavigationService.navigate("Support");
             }}
           />
         </View>

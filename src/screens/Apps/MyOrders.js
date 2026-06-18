@@ -1,50 +1,66 @@
 import {
   View,
-  Text,
   StyleSheet,
-  FlatList,
-  ImageBackground,
   Image,
-  ScrollView,
-  ActivityIndicator,
+  FlatList,
+  RefreshControl,
 } from "react-native";
 import React, { useEffect, useState, useCallback } from "react";
 import { Colors, Images, Metrix } from "../../config";
 import {
-  AuctionItemComponent,
-  Button,
-  DropdownField,
-  Header,
   HeroHeader,
   OrderItemComponent,
   TextComponent,
 } from "../../components";
-import { fonts } from "../../config/Constants";
-import Ionicons from "react-native-vector-icons/Ionicons";
 import { HomeMiddleware } from "../../redux/Middlewares";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
-import HomeItemComponent from "../../components/HomeItemComponent";
 
 const MyOrders = () => {
   const { user } = useSelector((state) => state.AuthReducer);
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const [orders, setOrders] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchOrders = useCallback(() => {
+    dispatch(HomeMiddleware.GetOrders(user?.token))
+      .then((res) => {
+        console.log("GetOrders (MyOrders):", res?.data);
+        setOrders(res?.data.orders ?? []);
+      })
+      .catch((err) => console.warn("GetOrders Error:", err))
+      .finally(() => setRefreshing(false));
+  }, [user?.token]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", fetchOrders);
+    return unsubscribe;
+  }, [navigation, fetchOrders]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchOrders();
+  };
 
   return (
     <View style={styles.container}>
       <HeroHeader title={"Orders"} />
-
       <FlatList
-        data={[1]}
-        style={{
-          height: Metrix.VerticalSize(440),
-        }}
+        data={orders}
+        style={{ flex: 1 }}
+        keyExtractor={(item) => String(item.id)}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+          />
+        }
         ListEmptyComponent={() => (
-          <View style={{ margin: 25 }}>
+          <View style={styles.emptyContainer}>
             <Image source={Images.noData} style={styles.avatar} />
-
             <TextComponent
               customStyles={{
                 textAlign: "center",
@@ -57,12 +73,11 @@ const MyOrders = () => {
           </View>
         )}
         ListFooterComponent={() => (
-          <View style={{ height: Metrix.HorizontalSize(120) }}></View>
+          <View style={{ height: Metrix.HorizontalSize(120) }} />
         )}
-        renderItem={({ item, index }) => {
-          return <OrderItemComponent item={item} index={index} />;
-        }}
-        keyExtractor={(item) => item.id}
+        renderItem={({ item, index }) => (
+          <OrderItemComponent item={item} index={index} />
+        )}
       />
     </View>
   );
@@ -75,14 +90,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  emptyContainer: {
+    alignItems: "center",
+    marginTop: Metrix.VerticalSize(30),
+  },
   avatar: {
     width: 380,
     resizeMode: "contain",
     height: 280,
     alignSelf: "center",
     marginTop: Metrix.VerticalSize(25),
-    // marginHorizontal: Metrix.HorizontalSize(15),
-    // height: 40,
-    // borderRadius: Metrix.HorizontalSize(100),
   },
 });

@@ -28,9 +28,9 @@ export default function Login() {
   const AD = "advertiser";
   const MP = "mobility_partner";
   const [emailAddress, setEmailAddress] = useState(
-    __DEV__ ? "dev3@yopmail.com" : "",
+    __DEV__ ? "devp@yopmail.com" : "",
   );
-  const [password, setPassword] = useState(__DEV__ ? "abcd@1234" : "");
+  const [password, setPassword] = useState(__DEV__ ? "Abcd@1234" : "");
   const [seePassword, setSeePassword] = useState(false);
   const [isAd, set_isAd] = useState(true);
 

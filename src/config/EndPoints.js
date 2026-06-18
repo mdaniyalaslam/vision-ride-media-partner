@@ -1,34 +1,42 @@
 export default endPoints = {
+  // Auth
   register: '/register',
   login: '/login',
+  logout: '/logout',
   forgotPassword: '/forgot-password',
-  resetPassword: '/reset-password',
-  changePassword: '/profile/change-password',
   verifyOtp: '/verify-otp',
+  resetPassword: '/reset-password',
   profile: '/profile',
-  // DASHBOARD APIS
-  bidsStats: '/bids/stats',
-  bids: '/bids',
-  bidPlace: '/bids/place',
-  // AUCTION APIS
-  categories: '/categories',
-  auctions: '/auctions',
-  invoices: '/invoices',
-  // ORDER APIS
-  downloadInvoice: invoiceId => `/invoices/${invoiceId}/download`,
-  processPayment: invoiceId => `/invoices/${invoiceId}/process-payment`,
-  orders: '/orders',
-  // CHAT APIS
+  deleteAccount: '/delete-account',
+
+  // Settings
+  getSettings: '/settings',
+  updateProfile: '/settings/profile',
+  updatePassword: '/settings/password',
+  updateBank: '/settings/bank',
+
+  // Vehicles
+  vehicles: '/vehicles',
+  vehicleById: id => `/vehicles/${id}`,
+  vehicleImages: id => `/vehicles/${id}/images`,
+  vehicleImageById: (vehicleId, imageId) =>
+    `/vehicles/${vehicleId}/images/${imageId}`,
+
+  // Messages
   messages: '/messages',
-  sendMessage: '/messages/send',
-  // CARD APIS
-  cards: '/cards',
-  addCard: '/cards/add',
-  setDefaultCard: '/cards/set-default',
-  deleteCard: cardId => `/cards/${cardId}`,
-  deleteAccount: '/profile/delete-account',
-  // COUNTRY APIS
-  countries: '/countries',
-  unreadNotifications: '/messages/unread-count',
-  markMessagesRead: '/messages/mark-as-read',
+  messagesUnreadCount: '/messages/unread-count',
+  messagesPoll: '/messages/poll',
+  messagesMarkAsRead: '/messages/mark-as-read',
+  messageAttachmentDownload: id => `/messages/attachments/${id}/download`,
+  deleteMessage: id => `/messages/${id}`,
+
+  // Monthly Reports
+  monthlyReports: '/monthly-reports',
+  monthlyReportsByOrder: orderId => `/monthly-reports/${orderId}`,
+
+  // Orders
+  orders: '/orders',
+
+  // Payments
+  payments: '/payments',
 };

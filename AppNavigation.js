@@ -32,6 +32,8 @@ import ResetPassword from "./src/screens/Auth/ResetPassword";
 import LogoutSuccess from "./src/screens/Apps/LogoutSuccess";
 import PleaseWaitUnderReview from "./src/screens/Apps/PleaseWaitUnderReview";
 import VehicleDetails from "./src/screens/Apps/VehicleDetails";
+import UpdateCarInformation from "./src/screens/Apps/UpdateCarInformation";
+import UpdateCarImages from "./src/screens/Apps/UpdateCarImages";
 import Orders from "./src/screens/Apps/Orders";
 import {
   Profile,
@@ -78,6 +80,11 @@ const UserStack = () => {
       <Stack.Screen name="AddCar" component={AddCar} />
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="VehicleDetails" component={VehicleDetails} />
+      <Stack.Screen
+        name="UpdateCarInformation"
+        component={UpdateCarInformation}
+      />
+      <Stack.Screen name="UpdateCarImages" component={UpdateCarImages} />
       <Stack.Screen name="Orders" component={Orders} />
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="Invoices" component={Invoices} />

@@ -33,16 +33,25 @@ const App = () => {
           style={{
             backgroundColor: Colors.background,
             borderLeftColor: 'green',
+            height: 'auto',
+            paddingVertical: 12,
           }}
           text1Style={{ color: Colors.textColor }}
+          text1NumberOfLines={0}
         />
       );
     },
     ToastError: props => (
       <BaseToast
         {...props}
-        style={{ backgroundColor: Colors.background, borderLeftColor: 'red' }}
+        style={{
+          backgroundColor: Colors.background,
+          borderLeftColor: 'red',
+          height: 'auto',
+          paddingVertical: 12,
+        }}
         text1Style={{ color: Colors.textColor }}
+        text1NumberOfLines={0}
       />
     ),
   };

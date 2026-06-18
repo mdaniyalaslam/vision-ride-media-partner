@@ -1,50 +1,84 @@
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import { Colors, Images, Metrix, NavigationService } from "../config";
-import { fonts, priceFormatter } from "../config/Constants";
+import { fonts } from "../config/Constants";
+import { imageBaseUrl } from "../config/ApiCaller";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import TextComponent from "./TextComponent";
-import { HomeMiddleware } from "../redux/Middlewares";
-import { useDispatch, useSelector } from "react-redux";
 import Tag from "./Tag";
 
-const HomeItemComponent = ({ item, index }) => {
-  const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.AuthReducer);
-  const product = item?.product || {};
-  const STATUS =
-    item?.status == "active"
-      ? "Winning"
-      : item?.status === "outbid"
-      ? "Outbid"
-      : item?.status === "won"
-      ? "Won"
-      : item?.status === "lost"
-      ? "Lost"
-      : "Unknown";
-  const secondsLeft = Math.floor(
-    (new Date(product?.end_date) - new Date()) / 1000,
-  );
+// Normalize a single image entry (string | object) to a usable URI
+const toImageUri = (img) => {
+  if (!img) return null;
+  const path =
+    typeof img === "string"
+      ? img
+      : img?.image_url ??
+        img?.image_path ??
+        img?.path ??
+        img?.url ??
+        img?.image;
+  if (!path) return null;
+  return /^https?:\/\//i.test(path) ? path : imageBaseUrl + path;
+};
 
-  const getAuctionDetails = () => {
-    NavigationService.navigate("VehicleDetails");
-    return;
-    dispatch(HomeMiddleware.GetAuctionDetails(product.id, user?.token)).then(
-      (res) => {
-        NavigationService.navigate("AuctionDetails", {
-          auctionId: product.id,
-          details: res,
-          comingFrom: "home",
-        });
-      },
-    );
+// Pull the first available image for the thumbnail
+const getThumbnail = (item) => {
+  const list = Array.isArray(item?.images) ? item.images : [];
+  for (const img of list) {
+    const uri = toImageUri(img);
+    if (uri) return uri;
+  }
+  const singles = [
+    item?.image_front,
+    item?.front_view,
+    item?.image_rear,
+    item?.image,
+    item?.thumbnail,
+  ];
+  for (const s of singles) {
+    const uri = toImageUri(s);
+    if (uri) return uri;
+  }
+  return null;
+};
+
+const HomeItemComponent = ({ item }) => {
+  const make = item?.make ?? "";
+  const model = item?.model ?? "";
+  const title = `${make} ${model}`.trim() || "Vehicle";
+  const regNumber = item?.registration_number ?? "—";
+  const year = item?.year ?? "—";
+  const mileage = item?.avg_monthly_mileage ?? null;
+  const monthlyAmount = item?.monthlyAmount ?? null;
+  const status = (item?.status ?? "").toString().toLowerCase();
+
+  const statusId =
+    status === "active" || status === "approved"
+      ? 2
+      : status === "pending"
+      ? 1
+      : status === "inactive" || status === "rejected"
+      ? 3
+      : 1;
+
+  const thumbnail = getThumbnail(item);
+
+  const goToDetails = () => {
+    NavigationService.navigate("VehicleDetails", { vehicle: item });
   };
 
   return (
-    <View style={styles.itemContainer}>
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={goToDetails}
+      style={styles.itemContainer}
+    >
       <View style={{ ...styles.row, padding: 10 }}>
-        {/* <Image source={{ uri: product?.thumbnail }} style={styles.carImage} /> */}
-        <Image source={Images.car} style={styles.carImage} />
+        <Image
+          source={thumbnail ? { uri: thumbnail } : Images.car}
+          style={styles.carImage}
+        />
         <View
           style={{
             justifyContent: "center",
@@ -52,19 +86,18 @@ const HomeItemComponent = ({ item, index }) => {
             width: Metrix.HorizontalSize(140),
           }}
         >
+          <TextComponent text={title} isTitle customStyles={{ fontSize: 14 }} />
           <TextComponent
-            text={"product?.title"}
-            isTitle
-            customStyles={{ fontSize: 14 }}
-          />
-          <TextComponent
-            text={"Reg. No. ABC-321"}
+            text={`Reg. No. ${regNumber}`}
             customStyles={{ fontSize: 14, marginVertical: 5 }}
           />
-          <TextComponent text={"Year 2026"} customStyles={{ fontSize: 14 }} />
+          <TextComponent
+            text={`Year ${year}`}
+            customStyles={{ fontSize: 14 }}
+          />
         </View>
         <View style={{ alignItems: "flex-end" }}>
-          <TouchableOpacity onPress={getAuctionDetails}>
+          <TouchableOpacity onPress={goToDetails}>
             <Ionicons
               name={"chevron-forward-circle"}
               color={Colors.primary}
@@ -73,18 +106,8 @@ const HomeItemComponent = ({ item, index }) => {
             />
           </TouchableOpacity>
           <Tag
-            text={STATUS}
-            id={
-              item?.status == "active"
-                ? 2
-                : item?.status == "outbid"
-                ? 1
-                : item?.status == "won"
-                ? 2
-                : item?.status == "lost"
-                ? 3
-                : 0
-            }
+            text={status.charAt(0).toUpperCase() + status.slice(1)}
+            id={statusId}
           />
         </View>
       </View>
@@ -118,9 +141,8 @@ const HomeItemComponent = ({ item, index }) => {
           >
             Avg. Monthly Mileage
           </Text>
-          {/* <Text style={styles.itemName}>$1</Text> */}
           <TextComponent
-            text={priceFormatter(product?.current_price)}
+            text={mileage ? `${mileage} mi` : "—"}
             customStyles={styles.itemName}
           />
         </View>
@@ -147,15 +169,13 @@ const HomeItemComponent = ({ item, index }) => {
           >
             Monthly Amount
           </Text>
-          {/* <Text style={styles.itemName}>12 Jan 24</Text> */}
           <TextComponent
-            text={priceFormatter(item?.bid_amount)}
+            text={monthlyAmount ? `$${monthlyAmount}` : "—"}
             customStyles={styles.itemName}
           />
         </View>
       </View>
-      {/* TIMER */}
-    </View>
+    </TouchableOpacity>
   );
 };
 

@@ -4,12 +4,35 @@ import {
   Platform,
   FlatList,
   View,
+  Text,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Colors, Metrix, NavigationService } from '../config';
+import { fonts } from '../config/Constants';
 import FastImage from 'react-native-fast-image';
 import Swiper from 'react-native-web-swiper';
 import { imageBaseUrl } from '../config/ApiCaller';
+
+// Items may be plain path strings or objects carrying an image_type label
+const getPath = item =>
+  typeof item === 'string'
+    ? item
+    : item?.path ??
+      item?.image_path ??
+      item?.image_url ??
+      item?.url ??
+      item?.image ??
+      '';
+
+const getType = item =>
+  typeof item === 'string' ? '' : item?.image_type ?? item?.type ?? '';
+
+const formatType = type =>
+  type
+    ? String(type)
+        .replace(/[_-]+/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase())
+    : '';
 
 export default function ImageSwiperComponent({ data = [] }) {
   const scrollRef = useRef(null);
@@ -21,6 +44,7 @@ export default function ImageSwiperComponent({ data = [] }) {
   }, [activeImageIndex]);
 
   const renderImages = ({ item, index }) => {
+    const label = formatType(getType(item));
     return (
       <TouchableOpacity
         onPress={() => setActiveImageIndex(index)}
@@ -36,11 +60,18 @@ export default function ImageSwiperComponent({ data = [] }) {
         <FastImage
           style={styles.smallImage}
           source={{
-            uri: imageBaseUrl + item,
+            uri: imageBaseUrl + getPath(item),
             priority: FastImage.priority.normal,
           }}
           resizeMode={FastImage.resizeMode.cover}
         />
+        {label ? (
+          <View style={styles.thumbTag}>
+            <Text numberOfLines={1} style={styles.thumbTagText}>
+              {label}
+            </Text>
+          </View>
+        ) : null}
       </TouchableOpacity>
     );
   };
@@ -73,10 +104,11 @@ export default function ImageSwiperComponent({ data = [] }) {
           }}
         >
           {data.length
-            ? data?.length &&
-              data?.map((item, index) => {
+            ? data?.map((item, index) => {
+                const slideLabel = formatType(getType(item));
                 return (
                   <TouchableOpacity
+                    key={index}
                     style={{
                       width: '100%',
                       borderRadius: 16,
@@ -95,11 +127,16 @@ export default function ImageSwiperComponent({ data = [] }) {
                         height: Metrix.VerticalSize(240),
                       }}
                       source={{
-                        uri: imageBaseUrl + data[activeImageIndex],
+                        uri: imageBaseUrl + getPath(item),
                         priority: FastImage.priority.normal,
                       }}
                       resizeMode={FastImage.resizeMode.cover}
                     />
+                    {slideLabel ? (
+                      <View style={styles.mainTag}>
+                        <Text style={styles.mainTagText}>{slideLabel}</Text>
+                      </View>
+                    ) : null}
                   </TouchableOpacity>
                 );
               })
@@ -123,5 +160,34 @@ const styles = StyleSheet.create({
   smallImage: {
     width: 75,
     height: 75,
+  },
+  mainTag: {
+    position: 'absolute',
+    top: Metrix.VerticalSize(10),
+    left: Metrix.HorizontalSize(10),
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: Metrix.HorizontalSize(10),
+    paddingVertical: Metrix.VerticalSize(4),
+    borderRadius: 12,
+  },
+  mainTagText: {
+    color: Colors.white,
+    fontFamily: fonts.SemiBold,
+    fontSize: Metrix.customFontSize(11),
+  },
+  thumbTag: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+  },
+  thumbTagText: {
+    color: Colors.white,
+    fontFamily: fonts.Regular,
+    fontSize: Metrix.customFontSize(8),
+    textAlign: 'center',
   },
 });
