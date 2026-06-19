@@ -25,6 +25,7 @@ function TextField({
   onFocus = () => {},
   onBlur = () => {},
   label = '',
+  placeholderTextColor = Colors.textColor,
 }) {
   return (
     <>
@@ -44,6 +45,7 @@ function TextField({
           value={value}
           maxLength={maxLength}
           placeholder={placeholder}
+          placeholderTextColor={placeholderTextColor}
           onChangeText={text => {
             const validate = isZeroAllowed
               ? text.match(/^$|^0$|^0\.\d{0,2}$|^[1-9]\d*(\.\d{0,2})?$/)

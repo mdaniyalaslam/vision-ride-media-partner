@@ -68,5 +68,6 @@ const styles = StyleSheet.create({
     color: Colors.white,
     marginTop: 10,
     width: "55%",
+    textAlign: "right",
   },
 });
