@@ -308,6 +308,40 @@ export class AuthMiddleware extends Component {
     };
   }
 
+  static GetStates() {
+    return async dispatch => {
+      try {
+        const response = await ApiCaller.GetHelper(endPoints.states);
+        console.log('GetStates Response:', response?.data);
+        if (response?.data?.statusCode == 200) {
+          return response?.data?.data ?? [];
+        }
+        return [];
+      } catch (e) {
+        console.log('GetStates Error:', e);
+        return [];
+      }
+    };
+  }
+
+  static GetCitiesByState(stateId) {
+    return async dispatch => {
+      try {
+        const response = await ApiCaller.GetHelper(
+          endPoints.citiesByState(stateId),
+        );
+        console.log('GetCitiesByState Response:', response?.data);
+        if (response?.data?.statusCode == 200) {
+          return response?.data?.data ?? [];
+        }
+        return [];
+      } catch (e) {
+        console.log('GetCitiesByState Error:', e);
+        return [];
+      }
+    };
+  }
+
   static UpdateBankDetails(token, body) {
     return async dispatch => {
       return new Promise(async (resolve, reject) => {

@@ -39,4 +39,8 @@ export default endPoints = {
 
   // Payments
   payments: '/payments',
+
+  // Helpers (root-level, no mobility-partner prefix)
+  states: '/api/states',
+  citiesByState: id => `/api/states/${id}/cities`,
 };

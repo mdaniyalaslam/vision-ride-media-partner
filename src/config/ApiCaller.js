@@ -7,6 +7,8 @@ import {AuthAction} from '../redux/Actions';
 
 export var baseUrl =
   'https://client72.vtechost.com/VisionRideMedia/public/api/mobility-partner';
+export const rootBaseUrl =
+  'https://client72.vtechost.com/VisionRideMedia/public';
 export const imageBaseUrl =
   'https://client72.vtechost.com/VisionRideMedia/public/';
 
@@ -135,6 +137,15 @@ export default class ApiCaller {
     console.log('===>>> API PUT:', baseUrl + url, body);
     return Axios.put(`${baseUrl}${url}`, body, {
       headers: {'Content-Type': 'application/json', ...headers},
+    })
+      .then(res => res)
+      .catch(err => err.response);
+  };
+
+  static GetHelper = (url = '') => {
+    console.log('===>>> API GET (helper):', rootBaseUrl + url);
+    return Axios.get(`${rootBaseUrl}${url}`, {
+      headers: {Accept: 'application/json'},
     })
       .then(res => res)
       .catch(err => err.response);
