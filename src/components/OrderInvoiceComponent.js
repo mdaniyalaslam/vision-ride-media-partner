@@ -1,60 +1,60 @@
-import { View, Text, StyleSheet, Platform, Alert, Share } from 'react-native';
-import React from 'react';
-import { Colors, Metrix, NavigationService } from '../config';
-import TextComponent from './TextComponent';
-import Button from './Button';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Tag from './Tag';
-import { priceFormatter, ToastSuccess } from '../config/Constants';
-import { HomeMiddleware } from '../redux/Middlewares';
-import { useDispatch, useSelector } from 'react-redux';
-import Toast from 'react-native-toast-message';
-import RNBlobUtil from 'react-native-blob-util';
+import { View, Text, StyleSheet, Platform, Alert, Share } from "react-native";
+import React from "react";
+import { Colors, Metrix, NavigationService } from "../config";
+import TextComponent from "./TextComponent";
+import Button from "./Button";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import Tag from "./Tag";
+import { priceFormatter, ToastSuccess } from "../config/Constants";
+import { HomeMiddleware } from "../redux/Middlewares";
+import { useDispatch, useSelector } from "react-redux";
+import Toast from "react-native-toast-message";
+import RNBlobUtil from "react-native-blob-util";
 // import Share from 'react-native-share';
 
-const formatDate = dateString => {
-  if (!dateString) return 'N/A';
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 };
 
-const formatAmount = amount => {
+const formatAmount = (amount) => {
   return priceFormatter(amount);
 };
 
 const OrderInvoiceComponent = ({ item, isOrder = false }) => {
-  const { user } = useSelector(state => state.AuthReducer);
+  const { user } = useSelector((state) => state.AuthReducer);
   const dispatch = useDispatch();
 
-  const downloadPDF = async base64PDF => {
+  const downloadPDF = async (base64PDF) => {
     try {
       // Define file path based on the platform
       const filePath =
-        Platform.OS === 'android'
-          ? `${RNBlobUtil.fs.dirs.DownloadDir}/AuctionInvoice.pdf`
-          : `${RNBlobUtil.fs.dirs.DocumentDir}/AuctionInvoice.pdf`;
+        Platform.OS === "android"
+          ? `${RNBlobUtil.fs.dirs.DownloadDir}/vrm_invoice.pdf`
+          : `${RNBlobUtil.fs.dirs.DocumentDir}/vrm_invoice.pdf`;
 
       // Write the Base64 string to a file
-      await RNBlobUtil.fs.writeFile(filePath, base64PDF, 'base64');
+      await RNBlobUtil.fs.writeFile(filePath, base64PDF, "base64");
 
-      if (Platform.OS === 'android') {
+      if (Platform.OS === "android") {
         // For Android, open the file directly
-        await RNBlobUtil.android.actionViewIntent(filePath, 'application/pdf');
-        Alert.alert('Success', 'PDF saved to Downloads folder.');
+        await RNBlobUtil.android.actionViewIntent(filePath, "application/pdf");
+        Alert.alert("Success", "PDF saved to Downloads folder.");
       } else {
         // For iOS, show the save-to-file bottom sheet
         await Share.share({
           url: `file://${filePath}`,
-          title: 'Save PDF',
+          title: "Save PDF",
         });
       }
     } catch (error) {
-      console.error('Error downloading the PDF:', error);
-      Alert.alert('Error', 'Failed to download the PDF.');
+      console.error("Error downloading the PDF:", error);
+      Alert.alert("Error", "Failed to download the PDF.");
     }
   };
 
@@ -65,26 +65,28 @@ const OrderInvoiceComponent = ({ item, isOrder = false }) => {
         isOrder ? item?.invoice_id : item?.id,
       ),
     )
-      .then(res => {
-        console.log('DOWNLOAD RES', res);
+      .then((res) => {
+        console.log("DOWNLOAD RES", res);
         if (res?.data?.pdf_base64) {
           downloadPDF(res?.data?.pdf_base64);
         } else {
-          Alert.alert('Error', 'Invalid PDF data received.');
+          Alert.alert("Error", "Invalid PDF data received.");
         }
       })
-      .catch(error => {
-        console.error('Error downloading invoice:', error);
-        Alert.alert('Error', 'Failed to download the invoice.');
+      .catch((error) => {
+        console.error("Error downloading invoice:", error);
+        Alert.alert("Error", "Failed to download the invoice.");
       });
   };
 
   const processPayment = () => {
-    dispatch(HomeMiddleware.ProcessPayment(user?.token, item?.id)).then(res => {
-      console.log('PAY NOW RES', res);
-      Toast.show(ToastSuccess('Payment processed successfully!'));
-      NavigationService.resetStack('UserStack');
-    });
+    dispatch(HomeMiddleware.ProcessPayment(user?.token, item?.id)).then(
+      (res) => {
+        console.log("PAY NOW RES", res);
+        Toast.show(ToastSuccess("Payment processed successfully!"));
+        NavigationService.resetStack("UserStack");
+      },
+    );
   };
   return (
     <>
@@ -93,12 +95,12 @@ const OrderInvoiceComponent = ({ item, isOrder = false }) => {
           {/* Status Tag */}
           <View style={styles.tagContainer}>
             <Tag
-              text={item?.status?.toUpperCase() || 'N/A'}
+              text={item?.status?.toUpperCase() || "N/A"}
               id={
-                item?.payment_status == 'pending' ||
-                item?.payment_status == 'unpaid'
+                item?.payment_status == "pending" ||
+                item?.payment_status == "unpaid"
                   ? 1
-                  : item?.payment_status == 'paid'
+                  : item?.payment_status == "paid"
                   ? 2
                   : 3
               }
@@ -151,7 +153,7 @@ const OrderInvoiceComponent = ({ item, isOrder = false }) => {
           <Button
             title="View order details"
             buttonStyle={{ height: 40, marginTop: 6 }}
-            onPress={() => NavigationService.navigate('OrderDetails', { item })}
+            onPress={() => NavigationService.navigate("OrderDetails", { item })}
           />
         </View>
       ) : (
@@ -159,12 +161,12 @@ const OrderInvoiceComponent = ({ item, isOrder = false }) => {
           {/* Status Tag */}
           <View style={styles.tagContainer}>
             <Tag
-              text={item?.payment_status?.toUpperCase() || 'N/A'}
+              text={item?.payment_status?.toUpperCase() || "N/A"}
               id={
-                item?.payment_status == 'pending' ||
-                item?.payment_status == 'unpaid'
+                item?.payment_status == "pending" ||
+                item?.payment_status == "unpaid"
                   ? 1
-                  : item?.payment_status == 'paid'
+                  : item?.payment_status == "paid"
                   ? 2
                   : 3
               }
@@ -237,7 +239,7 @@ const OrderInvoiceComponent = ({ item, isOrder = false }) => {
             </View>
           )}
 
-          {item?.payment_status === 'pending' ? (
+          {item?.payment_status === "pending" ? (
             <View
               style={
                 {
@@ -250,7 +252,7 @@ const OrderInvoiceComponent = ({ item, isOrder = false }) => {
               <Button
                 preIcon={
                   <MaterialIcons
-                    name={'payment'}
+                    name={"payment"}
                     color={Colors.white}
                     size={20}
                   />
@@ -272,7 +274,7 @@ const OrderInvoiceComponent = ({ item, isOrder = false }) => {
             <Button
               preIcon={
                 <MaterialIcons
-                  name={'download'}
+                  name={"download"}
                   color={Colors.white}
                   size={20}
                 />
@@ -299,14 +301,14 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
   },
   tagContainer: {
-    position: 'absolute',
+    position: "absolute",
     right: 10,
     top: 10,
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 6,
-    alignItems: 'center',
+    alignItems: "center",
   },
   label: {
     width: Metrix.HorizontalSize(80),

@@ -71,19 +71,26 @@ const OrderDetails = ({ route }) => {
 
   const orders = Array.isArray(item?.orders) ? item.orders : [];
   const order = orders[orders.length - 1] ?? null;
-  const hasOrder = !!order;
+
+  // Reflects a report submitted during this session without a full refetch
+  const [hasOrder, setHasOrder] = useState(!!order);
 
   const orderNumber = order?.order_number ?? String(item?.id ?? "—");
   const period = monthYear(order?.order_date ?? item?.created_at);
   const reportState = hasOrder ? "Submitted" : "Pending";
   const overallStatus = hasOrder ? "Active" : "Pending";
-  const reportsCount = item?.orders_count ?? orders.length;
+  const reportsCount = hasOrder
+    ? Math.max(item?.orders_count ?? orders.length, 1)
+    : item?.orders_count ?? orders.length;
 
   const vehicleName =
     `${vehicle?.make ?? ""} ${vehicle?.model ?? ""}`.trim() || "—";
 
   const handleAddReport = () => {
-    NavigationService.navigate("AddMonthlyMileage", { orderId: item?.id });
+    NavigationService.navigate("AddMonthlyMileage", {
+      orderId: item?.id,
+      onSubmitted: () => setHasOrder(true),
+    });
   };
 
   return (

@@ -95,6 +95,7 @@ const AddMonthlyMileage = ({route}) => {
     dispatch(HomeMiddleware.SubmitMonthlyReport(user?.token, formData))
       .then(res => {
         console.log('SubmitMonthlyReport Success:', res);
+        route?.params?.onSubmitted?.();
         NavigationService.goBack();
       })
       .catch(err => console.warn('SubmitMonthlyReport Error:', err));

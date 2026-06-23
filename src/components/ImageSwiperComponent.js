@@ -5,34 +5,34 @@ import {
   FlatList,
   View,
   Text,
-} from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
-import { Colors, Metrix, NavigationService } from '../config';
-import { fonts } from '../config/Constants';
-import FastImage from 'react-native-fast-image';
-import Swiper from 'react-native-web-swiper';
-import { imageBaseUrl } from '../config/ApiCaller';
+} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Colors, Metrix, NavigationService } from "../config";
+import { fonts } from "../config/Constants";
+import FastImage from "react-native-fast-image";
+import Swiper from "react-native-web-swiper";
+import { imageBaseUrl } from "../config/ApiCaller";
 
 // Items may be plain path strings or objects carrying an image_type label
-const getPath = item =>
-  typeof item === 'string'
+const getPath = (item) =>
+  typeof item === "string"
     ? item
     : item?.path ??
       item?.image_path ??
       item?.image_url ??
       item?.url ??
       item?.image ??
-      '';
+      "";
 
-const getType = item =>
-  typeof item === 'string' ? '' : item?.image_type ?? item?.type ?? '';
+const getType = (item) =>
+  typeof item === "string" ? "" : item?.image_type ?? item?.type ?? "";
 
-const formatType = type =>
+const formatType = (type) =>
   type
     ? String(type)
-        .replace(/[_-]+/g, ' ')
-        .replace(/\b\w/g, c => c.toUpperCase())
-    : '';
+        .replace(/[_-]+/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+    : "";
 
 export default function ImageSwiperComponent({ data = [] }) {
   const scrollRef = useRef(null);
@@ -54,7 +54,7 @@ export default function ImageSwiperComponent({ data = [] }) {
           borderColor:
             activeImageIndex === index ? Colors.primary : Colors.white,
           borderRadius: 14,
-          overflow: 'hidden',
+          overflow: "hidden",
         }}
       >
         <FastImage
@@ -86,7 +86,7 @@ export default function ImageSwiperComponent({ data = [] }) {
 
   return (
     <View>
-      <View style={{ height: 280, width: '100%' }}>
+      <View style={{ height: 280, width: "100%" }}>
         <Swiper
           controlsEnabled={false}
           ref={swiperRef}
@@ -94,7 +94,7 @@ export default function ImageSwiperComponent({ data = [] }) {
           loadMinimalSize={1}
           horizontal
           showsPagination={false}
-          onIndexChanged={index => {
+          onIndexChanged={(index) => {
             scrollRef.current.scrollToIndex({
               animated: true,
               index: index,
@@ -110,21 +110,22 @@ export default function ImageSwiperComponent({ data = [] }) {
                   <TouchableOpacity
                     key={index}
                     style={{
-                      width: '100%',
+                      width: "100%",
                       borderRadius: 16,
-                      overflow: 'hidden',
+                      overflow: "hidden",
                     }}
                     activeOpacity={1}
                     onPress={() =>
-                      NavigationService.navigate('ImageSlider', {
+                      NavigationService.navigate("ImageSlider", {
                         data: data,
                       })
                     }
                   >
                     <FastImage
                       style={{
-                        width: '100%',
-                        height: Metrix.VerticalSize(240),
+                        width: "100%",
+                        height: "100%",
+                        resizeMode: "contain",
                       }}
                       source={{
                         uri: imageBaseUrl + getPath(item),
@@ -162,10 +163,10 @@ const styles = StyleSheet.create({
     height: 75,
   },
   mainTag: {
-    position: 'absolute',
+    position: "absolute",
     top: Metrix.VerticalSize(10),
     left: Metrix.HorizontalSize(10),
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: "rgba(0,0,0,0.6)",
     paddingHorizontal: Metrix.HorizontalSize(10),
     paddingVertical: Metrix.VerticalSize(4),
     borderRadius: 12,
@@ -176,11 +177,11 @@ const styles = StyleSheet.create({
     fontSize: Metrix.customFontSize(11),
   },
   thumbTag: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: "rgba(0,0,0,0.55)",
     paddingVertical: 2,
     paddingHorizontal: 4,
   },
@@ -188,6 +189,6 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontFamily: fonts.Regular,
     fontSize: Metrix.customFontSize(8),
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
