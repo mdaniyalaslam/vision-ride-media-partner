@@ -66,6 +66,7 @@ const AuthStack = () => {
       <Stack.Screen name="PleaseWait" component={PleaseWait} />
       <Stack.Screen name="ResetPassword" component={ResetPassword} />
       <Stack.Screen name="ChangePasswordAuth" component={ChangePasswordAuth} />
+      <Stack.Screen name="WebViewScreen" component={WebViewScreen} />
 
       {/* <Stack.Screen name="AccountReview" component={AccountReview} /> */}
     </Stack.Navigator>

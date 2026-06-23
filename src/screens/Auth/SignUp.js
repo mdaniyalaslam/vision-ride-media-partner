@@ -5,9 +5,8 @@ import {
   TouchableOpacity,
   Image,
   View,
-  Platform,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Colors, Images, Metrix, NavigationService} from '../../config';
 import {
   Button,
@@ -21,8 +20,6 @@ import {
   isPasswordAlphaNumeric,
   isPasswordLengthCorrect,
   numbersRegex,
-  statesData,
-  citiesData,
   ToastError,
   ToastSuccess,
 } from '../../config/Constants';
@@ -42,11 +39,41 @@ const SignUp = () => {
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  const [stateId, setStateId] = useState(null);
   const [postalCode, setPostalCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [seePassword, setSeePassword] = useState(false);
   const [seeConfirmPassword, setSeeConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedGps, setAcceptedGps] = useState(false);
+
+  const [statesOptions, setStatesOptions] = useState([]);
+  const [citiesOptions, setCitiesOptions] = useState([]);
+
+  useEffect(() => {
+    dispatch(AuthMiddleware.GetStates()).then(data => {
+      console.log('States loaded:', data?.length);
+      const formatted = (data ?? []).map(s => ({id: s.id, name: s.name}));
+      setStatesOptions(formatted);
+    });
+  }, []);
+
+  const onStateSelect = obj => {
+    const name = obj?.name ?? obj;
+    const id = obj?.id ?? null;
+    setState(name);
+    setStateId(id);
+    setCity('');
+    setCitiesOptions([]);
+    if (id) {
+      dispatch(AuthMiddleware.GetCitiesByState(id)).then(data => {
+        console.log('Cities loaded:', data?.length);
+        const formatted = (data ?? []).map(c => ({id: c.id, name: c.name}));
+        setCitiesOptions(formatted);
+      });
+    }
+  };
 
   const isTrueString = str => !!str.match(/[a-zA-Z0-9]/);
 
@@ -93,6 +120,12 @@ const SignUp = () => {
     }
     if (password !== confirmPassword) {
       return Toast.show(ToastError('Passwords do not match.'));
+    }
+    if (!acceptedTerms) {
+      return Toast.show(ToastError('Please accept the terms and conditions.'));
+    }
+    if (!acceptedGps) {
+      return Toast.show(ToastError('Please consent to GPS tracking.'));
     }
 
     const payload = {
@@ -195,9 +228,9 @@ const SignUp = () => {
           isSearch
           label="State*"
           placeholder={state || 'Select State'}
-          updateValue={obj => setState(obj?.name ?? obj)}
+          updateValue={onStateSelect}
           modalTitle="Select State"
-          data={statesData}
+          data={statesOptions}
         />
         <DropdownField
           isSearch
@@ -205,7 +238,8 @@ const SignUp = () => {
           placeholder={city || 'Select City'}
           updateValue={obj => setCity(obj?.name ?? obj)}
           modalTitle="Select City"
-          data={citiesData}
+          data={citiesOptions}
+          disabled={!stateId}
         />
 
         <TextField
@@ -245,6 +279,97 @@ const SignUp = () => {
             </TouchableOpacity>
           }
         />
+      </View>
+
+      {/* Required Acceptances */}
+      <View style={styles.acceptanceCard}>
+        <Text style={styles.acceptanceTitle}>
+          Required Acceptances for Drivers
+        </Text>
+
+        <TouchableOpacity
+          activeOpacity={0.7}
+          style={styles.checkRow}
+          onPress={() => setAcceptedTerms(p => !p)}>
+          <Ionicons
+            name={acceptedTerms ? 'checkbox' : 'square-outline'}
+            size={Metrix.customFontSize(20)}
+            color={acceptedTerms ? Colors.primary : Colors.grayText}
+            style={{marginTop: 2}}
+          />
+          <Text style={styles.checkText}>
+            {'I acknowledge and accept '}
+            <Text
+              style={styles.link}
+              onPress={() =>
+                NavigationService.navigate('WebViewScreen', {
+                  title: 'Independent Contractor Status',
+                  url: 'https://client72.vtechost.com/VisionRideMedia/public/independent-contractor-status',
+                })
+              }>
+              Independent Contractor Status
+            </Text>
+            {', '}
+            <Text
+              style={styles.link}
+              onPress={() =>
+                NavigationService.navigate('WebViewScreen', {
+                  title: 'Payout Rules',
+                  url: 'https://client72.vtechost.com/VisionRideMedia/public/payout-rules',
+                })
+              }>
+              Payout Rules
+            </Text>
+            {' and payment terms, '}
+            <Text
+              style={styles.link}
+              onPress={() =>
+                NavigationService.navigate('WebViewScreen', {
+                  title: 'Terms And Conditions',
+                  url: 'https://client72.vtechost.com/VisionRideMedia/public/terms-and-conditions',
+                })
+              }>
+              Terms And Conditions
+            </Text>
+            {', '}
+            <Text
+              style={styles.link}
+              onPress={() =>
+                NavigationService.navigate('WebViewScreen', {
+                  title: 'Privacy Policy',
+                  url: 'https://client72.vtechost.com/VisionRideMedia/public/privacy-policy',
+                })
+              }>
+              Privacy Policy
+            </Text>
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.7}
+          style={styles.checkRow}
+          onPress={() => setAcceptedGps(p => !p)}>
+          <Ionicons
+            name={acceptedGps ? 'checkbox' : 'square-outline'}
+            size={Metrix.customFontSize(20)}
+            color={acceptedGps ? Colors.primary : Colors.grayText}
+            style={{marginTop: 2}}
+          />
+          <Text style={styles.checkText}>
+            {'I consent to '}
+            <Text
+              style={styles.link}
+              onPress={() =>
+                NavigationService.navigate('WebViewScreen', {
+                  title: 'GPS Tracking',
+                  url: 'https://client72.vtechost.com/VisionRideMedia/public/gps-tracking',
+                })
+              }>
+              GPS Tracking
+            </Text>
+            {' during work operations'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View style={{marginVertical: Metrix.VerticalSize(20)}}>
@@ -312,5 +437,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignSelf: 'center',
     marginBottom: Metrix.VerticalSize(40),
+  },
+  acceptanceCard: {
+    backgroundColor: Colors.backgroundGray,
+    borderRadius: 10,
+    padding: Metrix.HorizontalSize(14),
+    marginTop: Metrix.VerticalSize(10),
+  },
+  acceptanceTitle: {
+    fontFamily: fonts.Bold,
+    fontSize: Metrix.customFontSize(13),
+    color: Colors.darkGray,
+    marginBottom: Metrix.VerticalSize(10),
+  },
+  checkRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Metrix.VerticalSize(10),
+    gap: 8,
+  },
+  checkText: {
+    flex: 1,
+    fontFamily: fonts.Regular,
+    fontSize: Metrix.customFontSize(12),
+    color: Colors.darkGray,
+    lineHeight: 18,
+  },
+  link: {
+    color: Colors.lightBlue,
+    fontFamily: fonts.Medium,
   },
 });
